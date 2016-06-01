@@ -20,16 +20,16 @@ namespace Testing
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            if (!System.IO.Directory.Exists(@"C:/Users/daryl/Source/Repos/NSPJ/FileTransfer/FileTransfer/App_Data/" + Username.Text))
+            if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
             {
-                System.IO.Directory.CreateDirectory(@"C:/Users/daryl/Source/Repos/NSPJ/FileTransfer/FileTransfer/App_Data/" + Username.Text);
+                System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
             }
 
             //System.IO.DriveInfo di = new System.IO.DriveInfo("~/App_Data/" + Username.Text);
             //System.IO.DirectoryInfo dirInfo = di.RootDirectory;
             //System.IO.FileInfo[] files = dirInfo.GetFiles("*.*");
             string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
-            FileUpload1.PostedFile.SaveAs((@"C:/Users/daryl/Source/Repos/NSPJ/FileTransfer/FileTransfer/App_Data/" + Username.Text + "/") + fileName);
+            FileUpload1.PostedFile.SaveAs((Server.MapPath("~/App_Data/") + Username.Text + "/") + fileName);
             //  Response.Redirect(Request.Url.AbsoluteUri);
             Label1.Visible = true;
             Label1.Text = "File successfully uploaded!";
