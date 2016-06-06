@@ -21,11 +21,25 @@ namespace FileTransfer
         {
             string user = @"C:/Users/daryl/Source/Repos/NSPJ/FileTransfer/FileTransfer/App_Data/" + TextBox1.Text;
             string[] files = Directory.GetFiles(user);
-            ArrayList names = new ArrayList();
-            for ( int i = 0; i < files.Length; i++)
-                names.Add(files[i]);
-            ListBox1.DataSource = names;
-            ListBox1.DataBind();
+            List<ListItem> list = new List<ListItem>();
+            foreach (string filePath in files)
+                list.Add(new ListItem(Path.GetFileName(filePath), filePath));
+            GridView1.DataSource = list;
+            GridView1.DataBind();
+        }
+        protected void DownloadFile(object sender,EventArgs e)
+        {
+            string filePath = (sender as LinkButton).CommandArgument;
+            Response.ContentType = ContentType;
+            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(filePath));
+            Response.WriteFile(filePath);
+            Response.End();
+        }
+        protected void DeleteFile(object sender, EventArgs e)
+        {
+            string filePath = (sender as LinkButton).CommandArgument;
+            File.Delete(filePath);
+            Response.Redirect(Request.Url.AbsoluteUri);
         }
     }
 }

@@ -9,7 +9,21 @@
         <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Retrieve" />
     </p>
     <p>
-        <asp:ListBox ID="ListBox1" runat="server" Height="150px" Width="450px"></asp:ListBox>
-    </p>
+       <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText = "No files uploaded" GridLines="None">
+    <Columns>
+        <asp:BoundField DataField="Text" HeaderText="File Name" />
+        <asp:TemplateField>
+            <ItemTemplate>
+                <asp:LinkButton ID="lnkDownload" Text = "Download" CommandArgument = '<%# Eval("Value") %>' runat="server" OnClick = "DownloadFile"></asp:LinkButton>
+            </ItemTemplate>
+        </asp:TemplateField>
+        <asp:TemplateField>
+            <ItemTemplate>
+                <asp:LinkButton ID = "lnkDelete" Text = "Delete" CommandArgument = '<%# Eval("Value") %>' runat = "server" OnClick = "DeleteFile" />
+            </ItemTemplate>
+        </asp:TemplateField>
+    </Columns>
+        </asp:GridView>
+    </p> 
     <p>&nbsp;</p>
 </asp:Content>
