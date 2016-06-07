@@ -19,7 +19,7 @@ namespace FileTransfer
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            string user = @"C:/Users/daryl/Source/Repos/NSPJ/FileTransfer/FileTransfer/App_Data/" + TextBox1.Text;
+            string user = Server.MapPath("~/App_Data/") + TextBox1.Text;
             string[] files = Directory.GetFiles(user);
             List<ListItem> list = new List<ListItem>();
             foreach (string filePath in files)
