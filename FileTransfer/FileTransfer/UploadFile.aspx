@@ -1,6 +1,9 @@
 ﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="uploadFile.aspx.cs" Inherits="Testing.uploadFile" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="MainContent" runat="server">
     <h2>Upload a file</h2>
+<p>
+    <asp:Button ID="Button2" runat="server" OnClick="Button2_Click" Text="Button" />
+</p>
     <p>&nbsp;
         <asp:Label ID="Label2" runat="server" Text="Username: "></asp:Label>
 &nbsp;:&nbsp;

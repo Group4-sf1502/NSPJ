@@ -41,5 +41,20 @@ namespace FileTransfer
             File.Delete(filePath);
             Response.Redirect(Request.Url.AbsoluteUri);
         }
+
+        protected void Button2_Click(object sender, EventArgs e)
+        {
+            MultiView.ActiveViewIndex = 0;
+        }
+
+        protected void Button3_Click(object sender, EventArgs e)
+        {
+            MultiView.ActiveViewIndex = 1;
+        }
+
+        protected void ShareFile(object sender, EventArgs e)
+        {
+
+        }
     }
 }

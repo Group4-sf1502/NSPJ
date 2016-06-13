@@ -5,7 +5,7 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.IO;
-
+using System.Data.SqlClient;
 
 namespace Testing
 {
@@ -20,22 +20,44 @@ namespace Testing
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
             {
                 System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
             }
 
-            //System.IO.DriveInfo di = new System.IO.DriveInfo("~/App_Data/" + Username.Text);
-            //System.IO.DirectoryInfo dirInfo = di.RootDirectory;
-            //System.IO.FileInfo[] files = dirInfo.GetFiles("*.*");
+
+
             string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
-            FileUpload1.PostedFile.SaveAs((Server.MapPath("~/App_Data/") + Username.Text + "/") + fileName);
-            //  Response.Redirect(Request.Url.AbsoluteUri);
+            string path = Server.MapPath("~/App_Data/") + Username.Text + "/" + fileName;
+            FileUpload1.PostedFile.SaveAs(path);
+            //Response.Redirect(Request.Url.AbsoluteUri);
             Label1.Visible = true;
             Label1.Text = "File successfully uploaded!";
+      
 
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID) VALUES ('" + fileName + "','" + FileUpload1.PostedFile.ContentLength + "','" + path + "','" + 1 + "');";
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+
+            }
 
         }
 
+        protected void Button2_Click(object sender, EventArgs e)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                String username = "Daryl";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "INSERT INTO [User] (Username) VALUES ('" + username + "');";
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }
