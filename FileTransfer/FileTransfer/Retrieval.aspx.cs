@@ -54,6 +54,11 @@ namespace FileTransfer
 
         protected void ShareFile(object sender, EventArgs e)
         {
+            Popup.Visible = true;
+        }
+
+        protected void confirm_Click(object sender, EventArgs e)
+        {
 
         }
     }

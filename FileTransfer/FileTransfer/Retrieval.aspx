@@ -36,7 +36,7 @@
                     </asp:TemplateField>
                     <asp:TemplateField>
                         <ItemTemplate>
-                            <asp:LinkButton ID="Share" Text="Share With.." CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="ShareFile" />
+                            <asp:LinkButton ID="Share" Text="Share With.." CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="ShareFile" />  
                         </ItemTemplate>
                     </asp:TemplateField>
                 </Columns>
@@ -60,5 +60,15 @@
             </asp:GridView>
         </asp:View>
     </asp:MultiView>
+    <asp:Panel ID="Popup" runat="server" width="350px" Height="400px" Visible="false">
+        <asp:Label ID="Label2" runat="server" Text="Username:"></asp:Label>
+        &nbsp;
+        <asp:TextBox ID="username" runat="server"></asp:TextBox>
+        <br />
+        <br />
+        <br />
+        <asp:Button ID="confirm" runat="server" OnClick="confirm_Click" Text="Share" />
+        
+    </asp:Panel>
     <p>&nbsp;</p>
 </asp:Content>
