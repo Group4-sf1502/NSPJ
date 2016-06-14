@@ -6,6 +6,7 @@ using System.Web.UI;
 using System.Web.UI.WebControls;
 using System.IO;
 using System.Data.SqlClient;
+using FileTransfer;
 
 namespace Testing
 {
@@ -23,22 +24,22 @@ namespace Testing
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
                 if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
-            {
-                System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
-            }
+                {
+                    System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
+                }
+
+                int userid = SQL.getUserID(Username.Text);
+                string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
+                string path = Server.MapPath("~/App_Data/") + Username.Text + "/" + fileName;
+                FileUpload1.PostedFile.SaveAs(path);
+                //Response.Redirect(Request.Url.AbsoluteUri);
+                Label1.Visible = true;
+                Label1.Text = "File successfully uploaded!";
 
 
-
-            string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
-            string path = Server.MapPath("~/App_Data/") + Username.Text + "/" + fileName;
-            FileUpload1.PostedFile.SaveAs(path);
-            //Response.Redirect(Request.Url.AbsoluteUri);
-            Label1.Visible = true;
-            Label1.Text = "File successfully uploaded!";
-      
 
                 SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID) VALUES ('" + fileName + "','" + FileUpload1.PostedFile.ContentLength + "','" + path + "','" + 1 + "');";
+                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID) VALUES ('" + fileName + "','" + FileUpload1.PostedFile.ContentLength + "','" + path + "','" + userid + "');";
                 cmd.Connection = connection;
                 connection.Open();
                 cmd.ExecuteNonQuery();

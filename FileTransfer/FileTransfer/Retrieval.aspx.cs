@@ -8,6 +8,8 @@ using System.IO;
 using System.Net;
 using System.Collections;
 using AjaxControlToolkit;
+using System.Data.SqlClient;
+using FileTransfer;
 
 namespace FileTransfer
 {
@@ -15,12 +17,12 @@ namespace FileTransfer
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-       
+
         }
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            string user = Server.MapPath("~/App_Data/") + "Daryl";
+            string user = Server.MapPath("~/App_Data/") + TextBox1.Text;
             string[] files = Directory.GetFiles(user);
             List<ListItem> list = new List<ListItem>();
             foreach (string filePath in files)
@@ -29,9 +31,9 @@ namespace FileTransfer
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;
 
-            
+
         }
-        protected void DownloadFile(object sender,EventArgs e)
+        protected void DownloadFile(object sender, EventArgs e)
         {
             string filePath = (sender as LinkButton).CommandArgument;
             Response.ContentType = ContentType;
@@ -49,8 +51,8 @@ namespace FileTransfer
         protected void Button2_Click(object sender, EventArgs e)
         {
             MultiView.ActiveViewIndex = 0;
-            
-            
+
+
         }
 
         protected void Button3_Click(object sender, EventArgs e)
@@ -60,12 +62,12 @@ namespace FileTransfer
 
         protected void confirm_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         protected void Share_click(object sender, EventArgs e)
         {
-                       
+
         }
 
         protected void Cancel_Click(object sender, EventArgs e)
@@ -73,9 +75,28 @@ namespace FileTransfer
             ModalPopupExtender2.Hide();
         }
 
-        protected void showpopup(object sender,EventArgs e)
+        protected void showpopup(object sender, EventArgs e)
         {
+            string filename = Path.GetFileName((sender as LinkButton).CommandArgument);
+            fileName.Text = filename;
             ModalPopupExtender2.Show();
         }
+
+        protected void fileshare(object sender, EventArgs e)
+        {
+
+            string shareduser = username.Text;
+            string user = TextBox1.Text;
+
+            int userid = SQL.getUserID(user);
+            int shareduserid = SQL.getUserID(shareduser);
+            String filename = fileName.Text;
+            int fileid = SQL.getFileID(fileName.Text, userid);
+            SQL.insertShareFile(fileid, userid, shareduserid);
+
+
+
+        }
+
     }
 }

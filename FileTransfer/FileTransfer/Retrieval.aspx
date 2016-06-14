@@ -82,17 +82,17 @@
     <asp:Button ID="show" Text="Popup" runat="server" onclick="showpopup" style="display:none"/>
     <asp:Panel ID="panel1" runat="server" style="display:none" CssClass="popup">
         <br />
-       
+        <asp:Label runat="server" ID="fileName"></asp:Label>
+        <br />
         <asp:label runat="server">Username:</asp:label>
         <asp:TextBox runat="server" ID="username"></asp:TextBox>
-
         <br />
         <br />
         <br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <asp:Button ID="ok" Text="Confirm" runat="server" />
+        <asp:Button ID="ok" Text="Confirm" runat="server" onclick="fileshare"/>
         &nbsp;&nbsp; &nbsp;&nbsp;
         <asp:Button ID="Button4" runat="server" Text="Cancel" />
     </asp:Panel>
-    <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender2" runat="server" OkControlID="ok" PopupControlID="panel1" TargetControlID="show" BackgroundCssClass="background"></ajaxToolkit:ModalPopupExtender>
+    <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender2" runat="server" PopupControlID="panel1" TargetControlID="show" BackgroundCssClass="background"></ajaxToolkit:ModalPopupExtender>
 </asp:Content>
