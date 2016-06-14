@@ -7,6 +7,7 @@ using System.Web.UI.WebControls;
 using System.IO;
 using System.Net;
 using System.Collections;
+using AjaxControlToolkit;
 
 namespace FileTransfer
 {
@@ -14,18 +15,21 @@ namespace FileTransfer
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+       
         }
 
         protected void Button1_Click(object sender, EventArgs e)
         {
-            string user = Server.MapPath("~/App_Data/") + TextBox1.Text;
+            string user = Server.MapPath("~/App_Data/") + "Daryl";
             string[] files = Directory.GetFiles(user);
             List<ListItem> list = new List<ListItem>();
             foreach (string filePath in files)
                 list.Add(new ListItem(Path.GetFileName(filePath), filePath));
             GridView1.DataSource = list;
             GridView1.DataBind();
+            MultiView.ActiveViewIndex = 0;
+
+            
         }
         protected void DownloadFile(object sender,EventArgs e)
         {
@@ -45,6 +49,8 @@ namespace FileTransfer
         protected void Button2_Click(object sender, EventArgs e)
         {
             MultiView.ActiveViewIndex = 0;
+            
+            
         }
 
         protected void Button3_Click(object sender, EventArgs e)
@@ -52,14 +58,24 @@ namespace FileTransfer
             MultiView.ActiveViewIndex = 1;
         }
 
-        protected void ShareFile(object sender, EventArgs e)
-        {
-            Popup.Visible = true;
-        }
-
         protected void confirm_Click(object sender, EventArgs e)
         {
+            
+        }
 
+        protected void Share_click(object sender, EventArgs e)
+        {
+                       
+        }
+
+        protected void Cancel_Click(object sender, EventArgs e)
+        {
+            ModalPopupExtender2.Hide();
+        }
+
+        protected void showpopup(object sender,EventArgs e)
+        {
+            ModalPopupExtender2.Show();
         }
     }
 }

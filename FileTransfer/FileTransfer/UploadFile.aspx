@@ -17,8 +17,8 @@
         <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Upload" />
 
     </p>
+    
     <p>
-
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
     </p>

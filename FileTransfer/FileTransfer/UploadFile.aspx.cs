@@ -59,5 +59,10 @@ namespace Testing
                 cmd.ExecuteNonQuery();
             }
         }
+
+        protected void stub_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
