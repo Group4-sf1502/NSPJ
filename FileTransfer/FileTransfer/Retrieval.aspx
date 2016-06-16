@@ -60,7 +60,7 @@
             </asp:GridView>
         </asp:View>
         <asp:View ID="view2" runat="server">
-            <%-- <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None">
+             <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None">
                 <Columns>
                     <asp:BoundField DataField="Text" HeaderText="File Name" />
                     <asp:TemplateField>
@@ -75,7 +75,6 @@
                     </asp:TemplateField>
                 </Columns>
             </asp:GridView>
-            --%>
         </asp:View>
     </asp:MultiView>
 
@@ -95,4 +94,7 @@
         <asp:Button ID="Button4" runat="server" Text="Cancel" />
     </asp:Panel>
     <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender2" runat="server" PopupControlID="panel1" TargetControlID="show" BackgroundCssClass="background"></ajaxToolkit:ModalPopupExtender>
+    <p>
+        <asp:TextBox ID="testing" runat="server" Height="300px" TextMode="MultiLine" Width="300px"></asp:TextBox>
+    </p>
 </asp:Content>

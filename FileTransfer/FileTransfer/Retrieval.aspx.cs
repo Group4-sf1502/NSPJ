@@ -31,6 +31,26 @@ namespace FileTransfer
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;
 
+            int userid = SQL.getUserID(TextBox1.Text);
+
+            List<int> fileids = SQL.getShareFileID(userid);
+
+            List<String> filePaths = SQL.getFilePaths(fileids);
+
+            foreach (String c in filePaths)
+            {
+                testing.Text += c;
+            }
+
+            //List<ListItem> list2 = new List<ListItem>();
+            //foreach (string path in filePaths) 
+            //   list2.Add(new ListItem(Path.GetFileName(path), path));
+            //GridView2.DataSource = list2;
+            //GridView2.DataBind();
+
+
+
+
 
         }
         protected void DownloadFile(object sender, EventArgs e)
@@ -92,7 +112,7 @@ namespace FileTransfer
             int shareduserid = SQL.getUserID(shareduser);
             String filename = fileName.Text;
             int fileid = SQL.getFileID(fileName.Text, userid);
-            SQL.insertShareFile(fileid, userid, shareduserid);
+            SQL.insertShareFile(fileid, shareduserid);
 
 
 

@@ -257,6 +257,7 @@
     <Content Include="Global.asax" />
     <Content Include="Site.Master" />
     <Content Include="UploadFile.aspx" />
+    <Content Include="UploadPageV2.aspx" />
     <Content Include="ViewSwitcher.ascx" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
@@ -445,6 +446,13 @@
     </Compile>
     <Compile Include="UploadFile.aspx.designer.cs">
       <DependentUpon>UploadFile.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="UploadPageV2.aspx.cs">
+      <DependentUpon>UploadPageV2.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="UploadPageV2.aspx.designer.cs">
+      <DependentUpon>UploadPageV2.aspx</DependentUpon>
     </Compile>
     <Compile Include="ViewSwitcher.ascx.cs">
       <DependentUpon>ViewSwitcher.ascx</DependentUpon>
