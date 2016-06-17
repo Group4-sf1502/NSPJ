@@ -22,11 +22,17 @@ namespace FileTransfer
 
         protected void Button1_Click(object sender, EventArgs e)
         {
+            GridView1.DataSource = null;
+            GridView1.DataBind();
+            GridView2.DataSource = null;
+            GridView2.DataBind();
             string user = Server.MapPath("~/App_Data/") + TextBox1.Text;
             string[] files = Directory.GetFiles(user);
             List<ListItem> list = new List<ListItem>();
+
             foreach (string filePath in files)
                 list.Add(new ListItem(Path.GetFileName(filePath), filePath));
+
             GridView1.DataSource = list;
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;
@@ -36,21 +42,14 @@ namespace FileTransfer
             List<int> fileids = SQL.getShareFileID(userid);
 
             List<String> filePaths = SQL.getFilePaths(fileids);
+            
+            List<ListItem> list2 = new List<ListItem>();
 
-            foreach (String c in filePaths)
-            {
-                testing.Text += c;
-            }
+            foreach (string path in filePaths) 
+               list2.Add(new ListItem(Path.GetFileName(path), path));
 
-            //List<ListItem> list2 = new List<ListItem>();
-            //foreach (string path in filePaths) 
-            //   list2.Add(new ListItem(Path.GetFileName(path), path));
-            //GridView2.DataSource = list2;
-            //GridView2.DataBind();
-
-
-
-
+            GridView2.DataSource = list2;
+            GridView2.DataBind();
 
         }
         protected void DownloadFile(object sender, EventArgs e)

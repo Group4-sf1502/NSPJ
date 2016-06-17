@@ -13,32 +13,48 @@ namespace FileTransfer
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
-                String condition = "";
-                int size = id.Count();
-                for (int i = 0; i < size - 1; i++)
-                {
-                    condition += "" + id[i] + ",";
-                }
-                size -= 1;
-                condition += id[size];
-
                 List<String> filePaths = new List<String>();
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "SELECT filePath FROM [UserFiles] WHERE fileID IN ('" + 3 + "');";
-                cmd.Connection = connection;
-                connection.Open();
-                SqlDataReader rd = cmd.ExecuteReader();
+                int size = id.Count();
 
-                if (rd.HasRows)
+                if (size > 0)
                 {
-                    int count = 0;
-                    while (rd.Read());
-                    filePaths.Add(rd[count].ToString());
-                    count++; 
+
+                    String command = "SELECT filePath FROM [UserFiles] WHERE fileID IN ";
+                    command += "(";
+                    for (int i = 0; i < size - 1; i++)
+                    {
+                        command += id[i] + ",";
+                    }
+
+                    command += id[size - 1] + ");";
+
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = command;
+                    cmd.Connection = connection;
+                    connection.Open();
+                    SqlDataReader rd = cmd.ExecuteReader();
+
+                    if (rd.HasRows)
+                    {
+
+                        while (rd.Read())
+                        {
+                            filePaths.Add(rd.GetString(0));
+                        }
+
+                    }
+
+                    connection.Close();
+                    rd.Close();
+
+                    return filePaths;
+
                 }
-                connection.Close();
-                rd.Close();
-                return filePaths;
+
+                else
+                {
+                    return filePaths;
+                }
             }
         }
 

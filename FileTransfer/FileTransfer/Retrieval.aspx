@@ -94,7 +94,4 @@
         <asp:Button ID="Button4" runat="server" Text="Cancel" />
     </asp:Panel>
     <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender2" runat="server" PopupControlID="panel1" TargetControlID="show" BackgroundCssClass="background"></ajaxToolkit:ModalPopupExtender>
-    <p>
-        <asp:TextBox ID="testing" runat="server" Height="300px" TextMode="MultiLine" Width="300px"></asp:TextBox>
-    </p>
-</asp:Content>
+    </asp:Content>
