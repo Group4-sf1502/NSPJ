@@ -55,10 +55,16 @@ namespace FileTransfer
         protected void DownloadFile(object sender, EventArgs e)
         {
             string filePath = (sender as LinkButton).CommandArgument;
+            string fileName = Path.GetFileName(filePath);
+            string tempPath = Server.MapPath("~/temp/") + fileName;
+            File.Copy(filePath, tempPath);
+            Security.DecryptFile(tempPath, tempPath);
             Response.ContentType = ContentType;
-            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(filePath));
-            Response.WriteFile(filePath);
-            Response.End();
+            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
+            Response.WriteFile(tempPath);
+            Response.Flush();
+            File.Delete(tempPath);
+            
         }
         protected void DeleteFile(object sender, EventArgs e)
         {
@@ -112,9 +118,17 @@ namespace FileTransfer
             String filename = fileName.Text;
             int fileid = SQL.getFileID(fileName.Text, userid);
             SQL.insertShareFile(fileid, shareduserid);
+        }
 
+        protected void getinfo(object sender, EventArgs e)
+        {
+            string filePath = (sender as LinkButton).CommandArgument;
+            int fileid = SQL.getFileID(filePath);
+            int userid = SQL.getUserID(fileid);
+            String username = SQL.getUsername(userid);
 
-
+            TextBox1.Text = "" + username;
+            
         }
 
     }

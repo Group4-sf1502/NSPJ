@@ -52,7 +52,7 @@
                     </asp:TemplateField>
                     <asp:TemplateField>
                         <ItemTemplate>
-                            <asp:LinkButton ID="Share" Text="Share With.." CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="showpopup" />
+                            <asp:LinkButton ID="Share" Text="Share" runat="server" OnClick="showpopup" />
                         </ItemTemplate>
                     </asp:TemplateField>
                 </Columns>
@@ -71,6 +71,11 @@
                     <asp:TemplateField>
                         <ItemTemplate>
                             <asp:LinkButton ID="lnkDelete" Text="Delete" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DeleteFile" />
+                        </ItemTemplate>
+                    </asp:TemplateField>
+                    <asp:TemplateField>
+                        <ItemTemplate>
+                            <asp:LinkButton ID="Info" Text="More" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick=getinfo ToolTip="Shared with you by: " />
                         </ItemTemplate>
                     </asp:TemplateField>
                 </Columns>

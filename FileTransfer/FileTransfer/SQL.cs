@@ -142,5 +142,71 @@ namespace FileTransfer
             }
             return fileid;
         }
+
+        public static int getFileID(String filePath)
+        {
+            int fileid = 0;
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT fileID FROM [UserFiles] WHERE filePath = '" + filePath + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    fileid = rd.GetInt32(0);
+                }
+                connection.Close();
+                rd.Close();
+            }
+            return fileid;
+        }
+
+        public static int getUserID(int fileid)
+        {
+            int userid = 0;
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT userID FROM [UserFiles] WHERE fileID = '" + fileid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    userid = rd.GetInt32(0);
+                }
+                connection.Close();
+                rd.Close();
+            }
+            return userid;
+        }
+
+        public static String getUsername(int userid)
+        {
+            string username = "";
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT username FROM [User] WHERE userID = '" + userid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    username = rd.GetString(0);
+                }
+                connection.Close();
+                rd.Close();
+            }
+            return username;
+        }
     }
 }
