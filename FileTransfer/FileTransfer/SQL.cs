@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Web;
@@ -9,12 +10,55 @@ namespace FileTransfer
 {
     public class SQL
     {
-        public static List<String> getFilePaths(List<int> id)
+
+        public static DataTable getDataTable(int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                DataTable dt = new DataTable();
+                string command = "SELECT fileName,uploadTime FROM UserFiles WHERE userid = '" + userid + "';";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = command;
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataAdapter sda = new SqlDataAdapter();
+                sda.SelectCommand = cmd;
+                sda.Fill(dt);
+                return dt;
+            }
+        }
+
+        public static string getFilePaths(string fileName, int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                string filePath = "";
+                string command = "SELECT filePath from [UserFiles] WHERE fileName = '" + fileName + "' AND userID = '" + userid + "';";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = command;
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    filePath = rd.GetString(0);
+                }
+                connection.Close();
+                rd.Close();
+                return filePath;
+            }
+        }
+
+
+
+        public static List<String> getFilePaths(List<int> fileid)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
                 List<String> filePaths = new List<String>();
-                int size = id.Count();
+                int size = fileid.Count();
 
                 if (size > 0)
                 {
@@ -23,10 +67,10 @@ namespace FileTransfer
                     command += "(";
                     for (int i = 0; i < size - 1; i++)
                     {
-                        command += id[i] + ",";
+                        command += fileid[i] + ",";
                     }
 
-                    command += id[size - 1] + ");";
+                    command += fileid[size - 1] + ");";
 
                     SqlCommand cmd = new SqlCommand();
                     cmd.CommandText = command;
@@ -43,19 +87,38 @@ namespace FileTransfer
                         }
 
                     }
-
                     connection.Close();
                     rd.Close();
-
-                    return filePaths;
-
                 }
 
-                else
-                {
-                    return filePaths;
-                }
+                return filePaths;
             }
+        }
+
+        public static List<String> getFilePaths(int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                List<String> filePaths = new List<String>();
+                string command = "SELECT filePath FROM [UserFiles] WHERE userID = '" + userid + "';";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = command;
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+
+                if (rd.HasRows)
+                {
+                    while (rd.Read())
+                    {
+                        filePaths.Add(rd.GetString(0));
+                    }
+                }
+                connection.Close();
+                rd.Close();
+                return filePaths;
+            }
+
         }
 
 
@@ -97,28 +160,6 @@ namespace FileTransfer
                 cmd.ExecuteNonQuery();
                 connection.Close();
             }
-        }
-
-        public static int getUserID(String username)
-        {
-            int userid = 0;
-            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-            {
-
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "SELECT userID FROM [User] WHERE username = '" + username + "';";
-                cmd.Connection = connection;
-                connection.Open();
-                SqlDataReader rd = cmd.ExecuteReader();
-                if (rd.HasRows)
-                {
-                    rd.Read();
-                    userid = rd.GetInt32(0);
-                }
-                connection.Close();
-                rd.Close();
-            }
-            return userid;
         }
 
         public static int getFileID(String fileName, int userid)
@@ -207,6 +248,44 @@ namespace FileTransfer
                 rd.Close();
             }
             return username;
+        }
+
+        public static int getUserID(String username)
+        {
+            int userid = 0;
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT userID FROM [User] WHERE username = '" + username + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    userid = rd.GetInt32(0);
+                }
+                connection.Close();
+                rd.Close();
+            }
+            return userid;
+        }
+
+        public static void deleteFile(string filePath)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                int fileid = getFileID(filePath);
+                cmd.CommandText = "DELETE FROM [sharedFiles] WHERE fileID = '" + fileid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+                cmd.CommandText = "DELETE FROM [UserFiles] WHERE fileID = '" + fileid + "';";
+                cmd.ExecuteNonQuery();
+                connection.Close();
+            }
         }
     }
 }

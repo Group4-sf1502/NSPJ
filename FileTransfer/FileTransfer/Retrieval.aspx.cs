@@ -33,6 +33,7 @@ namespace FileTransfer
             foreach (string filePath in files)
                 list.Add(new ListItem(Path.GetFileName(filePath), filePath));
 
+
             GridView1.DataSource = list;
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;

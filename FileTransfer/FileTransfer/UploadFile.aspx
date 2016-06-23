@@ -17,6 +17,31 @@
             width: 300px;
             height: 150px;
         }
+
+        .grid-view tr.header {
+            background-color:white;	
+            border-bottom:grey 1px solid;
+        }
+
+        .grid-view tr.normal {
+            background-color:white;
+            padding:5px;
+        }
+
+        .grid-view tr.normal:hover {
+            background-color:#bbb4b4;
+            color:white;         
+        }
+
+        .grid-view tr.normal:hover .button {
+            display:block;
+        }
+
+        .button {
+            display:none;
+        }
+
+        
         </style>
     <h2>Upload a file</h2>
     <p>&nbsp;
@@ -27,7 +52,7 @@
         <asp:FileUpload ID="FileUpload1" runat="server" />
     </p>
     <p>
-        <asp:Button ID="Button1" runat="server" OnClick="Button1_Click" Text="Upload" />
+        <asp:Button ID="Button1" runat="server" OnClick="upload" Text="Upload" />
 
     </p>
     
@@ -47,47 +72,25 @@
 
      <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
-            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None">
+            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view">
                 <Columns>
-                    <asp:BoundField DataField="Text" HeaderText="File Name" />
-                    <asp:TemplateField>
-                        <ItemTemplate>
-                            <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton>
-                        </ItemTemplate>
-                    </asp:TemplateField>
-                    <asp:TemplateField>
-                        <ItemTemplate>
-                            <asp:LinkButton ID="lnkDelete" Text="Delete" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DeleteFile" />
-                        </ItemTemplate>
-                    </asp:TemplateField>
-                    <asp:TemplateField>
-                        <ItemTemplate>
-                            <asp:LinkButton ID="Share" Text="Share" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="showpopup" />
-                        </ItemTemplate>
-                    </asp:TemplateField>
+                    <asp:BoundField DataField="fileName" HeaderText="File Name" />
+                    <asp:BoundField DataField="uploadTime" HeaderText="Time of upload" />
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button"  runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button"  runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="Share" Text="Share" CssClass="button"  runat="server" OnClick="showpopup" /></ItemTemplate></asp:TemplateField>
                 </Columns>
 
             </asp:GridView>
         </asp:View>
         <asp:View ID="view2" runat="server">
-             <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None">
+             <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view">
                 <Columns>
                     <asp:BoundField DataField="Text" HeaderText="File Name" />
-                    <asp:TemplateField>
-                        <ItemTemplate>
-                            <asp:LinkButton ID="lnkDownload" Text="Download" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DownloadFile"></asp:LinkButton>
-                        </ItemTemplate>
-                    </asp:TemplateField>
-                    <asp:TemplateField>
-                        <ItemTemplate>
-                            <asp:LinkButton ID="lnkDelete" Text="Delete" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick="DeleteFile" />
-                        </ItemTemplate>
-                    </asp:TemplateField>
-                    <asp:TemplateField>
-                        <ItemTemplate>
-                            <asp:LinkButton ID="Info" Text="More" CommandArgument='<%# Eval("Value") %>' runat="server" OnClick=getinfo ToolTip="Shared with you by: " />
-                        </ItemTemplate>
-                    </asp:TemplateField>
+                    <asp:BoundField DataField="userID" HeaderText="Shared with you" />
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button" runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button" runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="Info" Text="More" CssClass="button" runat="server" OnClick=getinfo ToolTip="Shared with you by: " /></ItemTemplate></asp:TemplateField>
                 </Columns>
             </asp:GridView>
         </asp:View>
