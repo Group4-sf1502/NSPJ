@@ -42,6 +42,7 @@
         }
 
         
+        
         </style>
     <h2>Upload a file</h2>
     <p>&nbsp;
@@ -52,7 +53,10 @@
         <asp:FileUpload ID="FileUpload1" runat="server" />
     </p>
     <p>
-        <asp:Button ID="Button1" runat="server" OnClick="upload" Text="Upload" />
+        <asp:Button ID="Button1" runat="server" OnClick="upload" Text="Upload"/>
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <asp:Button ID="Button2" runat="server" OnClick="retrieve" Text="Retrieve"/>
 
     </p>
     
@@ -60,15 +64,17 @@
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
     </p>
-
-     <p>
-        <asp:Button ID="Button2" runat="server" OnClick="retrieve" Text="Retrieve" />
-    </p>
     <p>
-     <asp:Button ID="Button3" runat="server" OnClick="ViewMyFiles" Text="My Files" CssClass="Initial" />
-        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-     <asp:Button ID="Button4" runat="server" OnClick="ViewSharedFiles" Text="Files shared with me" CssClass="Initial" />
+        <asp:TextBox ID="TextBox1" runat="server" Width="500px"></asp:TextBox>
+
     </p>
+
+    <p>
+     <asp:Button ID="Button3" runat="server" OnClick="ViewMyFiles" Text="My Files"  />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <asp:Button ID="Button4" runat="server" OnClick="ViewSharedFiles" Text="Files shared with me"  />
+    </p>
+    
 
      <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
@@ -80,15 +86,14 @@
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button"  runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="Share" Text="Share" CssClass="button"  runat="server" OnClick="showpopup" /></ItemTemplate></asp:TemplateField>
                 </Columns>
-
             </asp:GridView>
         </asp:View>
         <asp:View ID="view2" runat="server">
              <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view">
                 <Columns>
-                    <asp:BoundField DataField="Text" HeaderText="File Name" />
-                    <asp:BoundField DataField="userID" HeaderText="Shared with you" />
-                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button" runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
+                    <asp:BoundField DataField="fileName" HeaderText="File Name" />
+                    <asp:BoundField DataField="Username" HeaderText="Shared with you by" />
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button" runat="server" OnClick="DownloadSharedFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button" runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="Info" Text="More" CssClass="button" runat="server" OnClick=getinfo ToolTip="Shared with you by: " /></ItemTemplate></asp:TemplateField>
                 </Columns>

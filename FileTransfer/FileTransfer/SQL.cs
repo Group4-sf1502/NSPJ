@@ -24,9 +24,80 @@ namespace FileTransfer
                 SqlDataAdapter sda = new SqlDataAdapter();
                 sda.SelectCommand = cmd;
                 sda.Fill(dt);
+                connection.Close();
                 return dt;
             }
         }
+
+        public static List<String> getSharedDataTable(List<int> fileid)
+        {
+            List<String> filenames = new List<String>();
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                
+                int size = fileid.Count();
+                SqlDataAdapter sda = new SqlDataAdapter();
+                if (size > 0)
+                {
+
+                    string command = "SELECT fileName FROM [UserFiles] WHERE fileID IN ";
+                    command += "(";
+                    for (int i = 0; i < size - 1; i++)
+                    {
+                        command += fileid[i] + ",";
+                    }
+
+                    command += fileid[size - 1] + ");";
+
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.CommandText = command;
+                    cmd.Connection = connection;
+                    connection.Open();
+                    SqlDataReader rd = cmd.ExecuteReader();
+
+                    if (rd.HasRows)
+                    {
+                        while (rd.Read())
+                        {
+                            filenames.Add(rd.GetString(0));
+                        }
+                    }
+                    connection.Close();
+                    rd.Close();
+
+                }
+                
+                return filenames;
+            }
+        }
+
+        public static List<String> getShareUser(int shareduser)
+        {
+            
+            List<String> usernames = new List<String>();
+            
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                string command = "SELECT Username from [sharedFiles] WHERE shareduser = '" + shareduser + "';";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = command;
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+
+                if (rd.HasRows)
+                {
+                    while (rd.Read())
+                    {
+                        usernames.Add(rd.GetString(0));
+                    }
+                }
+                connection.Close();
+                rd.Close();
+            }
+            return usernames;
+        }
+
 
         public static string getFilePaths(string fileName, int userid)
         {
@@ -148,13 +219,13 @@ namespace FileTransfer
 
 
 
-        public static void insertShareFile(int fileid, int shareduserid)
+        public static void insertShareFile(int fileid, int shareduserid,string username)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
 
                 SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "INSERT INTO [sharedFiles] (fileID,shareduser) VALUES ('" + fileid + "','" + shareduserid + "');";
+                cmd.CommandText = "INSERT INTO [sharedFiles] (fileID,shareduser,Username) VALUES ('" + fileid + "','" + shareduserid + "','" + username + "');";
                 cmd.Connection = connection;
                 connection.Open();
                 cmd.ExecuteNonQuery();

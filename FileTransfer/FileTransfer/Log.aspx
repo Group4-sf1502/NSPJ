@@ -60,22 +60,25 @@
 <p>
     &nbsp;</p>
 <p>
-    <asp:GridView ID="GridView3" runat="server" AutoGenerateColumns="False" DataKeyNames="fileID" DataSourceID="SqlDataSource3" EmptyDataText="There are no data records to display.">
+    <asp:GridView ID="GridView5" runat="server" AutoGenerateColumns="False" DataKeyNames="fileID" DataSourceID="SqlDataSource3" EmptyDataText="There are no data records to display.">
         <Columns>
             <asp:BoundField DataField="fileID" HeaderText="fileID" ReadOnly="True" SortExpression="fileID" />
             <asp:BoundField DataField="shareduser" HeaderText="shareduser" SortExpression="shareduser" />
+            <asp:BoundField DataField="Username" HeaderText="Username" SortExpression="Username" />
         </Columns>
     </asp:GridView>
-    <asp:SqlDataSource ID="SqlDataSource3" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [sharedFiles] WHERE [fileID] = @fileID" InsertCommand="INSERT INTO [sharedFiles] ([fileID], [shareduser]) VALUES (@fileID, @shareduser)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [fileID], [shareduser] FROM [sharedFiles]" UpdateCommand="UPDATE [sharedFiles] SET [shareduser] = @shareduser WHERE [fileID] = @fileID">
+    <asp:SqlDataSource ID="SqlDataSource3" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [sharedFiles] WHERE [fileID] = @fileID" InsertCommand="INSERT INTO [sharedFiles] ([fileID], [shareduser], [Username]) VALUES (@fileID, @shareduser, @Username)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [fileID], [shareduser], [Username] FROM [sharedFiles]" UpdateCommand="UPDATE [sharedFiles] SET [shareduser] = @shareduser, [Username] = @Username WHERE [fileID] = @fileID">
         <DeleteParameters>
             <asp:Parameter Name="fileID" Type="Int32" />
         </DeleteParameters>
         <InsertParameters>
             <asp:Parameter Name="fileID" Type="Int32" />
             <asp:Parameter Name="shareduser" Type="Int32" />
+            <asp:Parameter Name="Username" Type="String" />
         </InsertParameters>
         <UpdateParameters>
             <asp:Parameter Name="shareduser" Type="Int32" />
+            <asp:Parameter Name="Username" Type="String" />
             <asp:Parameter Name="fileID" Type="Int32" />
         </UpdateParameters>
     </asp:SqlDataSource>

@@ -18,6 +18,7 @@ namespace Testing
     {
         protected void Page_Load(object sender, EventArgs e)
         {
+            
         }
 
         public void SaveAs(String fileName)
@@ -57,24 +58,38 @@ namespace Testing
 
         protected void retrieve(object sender, EventArgs e)
         {
+            int userid = SQL.getUserID(Username.Text);
+
             //My files
 
-            int userid = SQL.getUserID(Username.Text);
             DataTable dt = SQL.getDataTable(userid);
             GridView1.DataSource = dt;
             GridView1.DataBind();
-           
 
             //Files shared with me
     
             List<int> fileids = SQL.getShareFileID(userid);
-            List<String> filePaths = SQL.getFilePaths(fileids);
-            List<ListItem> list2 = new List<ListItem>();
+            DataTable dt2 = new DataTable();
+            DataRow row;
+            DataColumn column = new DataColumn("fileName");
+            column.DataType = Type.GetType("System.String");
+            DataColumn column2 = new DataColumn("Username");
+            column2.DataType = Type.GetType("System.String");
+            dt2.Columns.Add(column);
+            dt2.Columns.Add(column2);
+            List<String> files = SQL.getSharedDataTable(fileids);
+            List<String> usernames = SQL.getShareUser(userid);
+            
+            for (int i = 0; i < files.Count(); i++)
+            {
+                row = dt2.NewRow();
+                row["fileName"] = files[i];
+                row["Username"] = usernames[i];
+                dt2.Rows.Add(row);
+            }
 
-            foreach (string path in filePaths)
-                list2.Add(new ListItem(Path.GetFileName(path), path));
-
-            GridView2.DataSource = list2;
+            
+            GridView2.DataSource = dt2;
             GridView2.DataBind();
             
             MultiView.ActiveViewIndex = 0;
@@ -94,8 +109,22 @@ namespace Testing
             Response.Flush();
             File.Delete(tempPath);
             Response.End();
-           
-            
+        }
+
+        protected void DownloadSharedFile(object sender, EventArgs e)
+        {
+            string filePath = getsharedpath(sender);      
+            string filename = Path.GetFileName(filePath);
+            string tempPath = Server.MapPath("~/temp/") + filename;
+            File.Copy(filePath, tempPath);
+            Security.DecryptFile(tempPath, tempPath);
+            Response.ClearContent();
+            Response.ContentType = ContentType;
+            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
+            Response.TransmitFile(tempPath);
+            Response.Flush();
+            File.Delete(tempPath);
+            Response.End();
 
         }
         protected void DeleteFile(object sender, EventArgs e)
@@ -142,7 +171,7 @@ namespace Testing
             int shareduserid = SQL.getUserID(shareduser);
             String filename = fileName.Text;  
             int fileid = SQL.getFileID(fileName.Text, userid);
-            SQL.insertShareFile(fileid, shareduserid);
+            SQL.insertShareFile(fileid,shareduserid,user);
             
         }
 
@@ -179,6 +208,16 @@ namespace Testing
             string filePath = SQL.getFilePaths(filename, userid);
             return filePath;
         }
-       
+
+        private string getsharedpath(object sender)
+        {
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string filename = grv.Cells[0].Text;
+            int userid = SQL.getUserID(grv.Cells[1].Text);
+            string filePath = SQL.getFilePaths(filename, userid);
+            return filePath;
+        }
+
     }
 }
