@@ -71,6 +71,25 @@ namespace FileTransfer
             }
         }
 
+        public static DataTable getSharedUsers(int fileid)
+        {
+            DataTable dt = new DataTable();
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                string command = "SELECT [User].Username FROM [User] INNER JOIN sharedFiles ON [User].userID = sharedFiles.shareduser WHERE sharedFiles.fileID = '" + fileid + "';";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = command;
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataAdapter sda = new SqlDataAdapter();
+                sda.SelectCommand = cmd;
+                sda.Fill(dt);               
+                
+                connection.Close();
+                return dt;
+            }
+        }
+
         public static List<String> getShareUser(int shareduser)
         {
             
@@ -354,6 +373,20 @@ namespace FileTransfer
                 connection.Open();
                 cmd.ExecuteNonQuery();
                 cmd.CommandText = "DELETE FROM [UserFiles] WHERE fileID = '" + fileid + "';";
+                cmd.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
+        public static void removeSharedFile(int fileid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                string command = "DELETE FROM [sharedFiles] WHERE fileID = '" + fileid + "';";
+                cmd.CommandText = command;
+                cmd.Connection = connection;
+                connection.Open();
                 cmd.ExecuteNonQuery();
                 connection.Close();
             }

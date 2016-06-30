@@ -95,6 +95,13 @@ namespace Testing
             MultiView.ActiveViewIndex = 0;
         }
 
+        protected void retrieveSharedUsers(int fileid)
+        {
+            DataTable dt = SQL.getSharedUsers(fileid);
+            sharedList.DataSource = dt;
+            sharedList.DataBind();
+        }
+
         protected void DownloadFile(object sender, EventArgs e)
         {
             string filePath = getpath(sender);
@@ -157,7 +164,9 @@ namespace Testing
         {
             string filepath = getpath(sender);
             string filename = Path.GetFileName(filepath);
+            int fileid = SQL.getFileID(filepath);
             fileName.Text = filename;
+            retrieveSharedUsers(fileid);
             ModalPopupExtender2.Show();
         }
 
@@ -169,21 +178,23 @@ namespace Testing
 
             int userid = SQL.getUserID(user);
             int shareduserid = SQL.getUserID(shareduser);
-            String filename = fileName.Text;  
-            int fileid = SQL.getFileID(fileName.Text, userid);
+            string filename = fileName.Text;  
+            int fileid = SQL.getFileID(filename, userid);
             SQL.insertShareFile(fileid,shareduserid,user);
             
         }
 
-        protected void getinfo(object sender, EventArgs e)
+        protected void RemoveFile(object sender, EventArgs e)
         {
-            string filePath = (sender as LinkButton).CommandArgument;
+            string filePath = getsharedpath(sender);
             int fileid = SQL.getFileID(filePath);
-            int userid = SQL.getUserID(fileid);
-            String username = SQL.getUsername(userid);
+            SQL.removeSharedFile(fileid);
+        }
 
-            Username.Text = "" + username;
-
+        protected void RemoveShare(object sender, EventArgs e)
+        {
+            int fileid = SQL.getFileID(fileName.Text,SQL.getUserID(Username.Text));
+            SQL.removeSharedFile(fileid);
         }
 
         protected void rowdatabind(object sender, GridViewRowEventArgs e)

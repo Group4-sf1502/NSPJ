@@ -64,10 +64,6 @@
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
     </p>
-    <p>
-        <asp:TextBox ID="TextBox1" runat="server" Width="500px"></asp:TextBox>
-
-    </p>
 
     <p>
      <asp:Button ID="Button3" runat="server" OnClick="ViewMyFiles" Text="My Files"  />
@@ -94,15 +90,14 @@
                     <asp:BoundField DataField="fileName" HeaderText="File Name" />
                     <asp:BoundField DataField="Username" HeaderText="Shared with you by" />
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button" runat="server" OnClick="DownloadSharedFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
-                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button" runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
-                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="Info" Text="More" CssClass="button" runat="server" OnClick=getinfo ToolTip="Shared with you by: " /></ItemTemplate></asp:TemplateField>
+                    <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkRemove" Text="Remove" CssClass="button" runat="server" OnClick="RemoveFile" /></ItemTemplate></asp:TemplateField>
                 </Columns>
             </asp:GridView>
         </asp:View>
     </asp:MultiView>
 
     <asp:Button ID="show" Text="Popup" runat="server" onclick="showpopup" style="display:none"/>
-    <asp:Panel ID="panel1" runat="server" style="display:none" CssClass="popup">
+    <asp:Panel ID="panel1" runat="server" style="display:none" CssClass="popup" Height="300px">
         <br />
         <asp:Label runat="server" ID="fileName"></asp:Label>
         <br />
@@ -110,6 +105,12 @@
         <asp:TextBox runat="server" ID="sharedUser"></asp:TextBox>
         <br />
         <br />
+        <asp:GridView ID="sharedList" runat="server" CssClass="grid-view" GridLines="None" EmptyDataText="This file is not shared with anyone" AutoGenerateColumns="false">
+            <Columns>
+                <asp:BoundField DataField="Username" HeaderText="Shared with" />
+                <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkRemove" Text="Remove" runat="server" OnClick="RemoveShare" /></ItemTemplate></asp:TemplateField>
+            </Columns>
+        </asp:GridView>
         <br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <asp:Button ID="ok" Text="Confirm" runat="server" onclick="fileshare"/>
