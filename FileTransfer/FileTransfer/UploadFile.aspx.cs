@@ -26,8 +26,7 @@ namespace Testing
 
         protected void upload(object sender, EventArgs e)
         {
-            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-            {
+            
                 if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
                 {
                     System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
@@ -44,14 +43,10 @@ namespace Testing
                 Label1.Text = "File successfully uploaded!";
 
 
+            SQL.insertFile(fileName, FileUpload1.PostedFile.ContentLength, path, userid);
                 
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID) VALUES ('" + fileName + "','" + FileUpload1.PostedFile.ContentLength + "','" + path + "','" + userid + "');";
-                cmd.Connection = connection;
-                connection.Open();
-                cmd.ExecuteNonQuery();
                 
-            }
+            
 
         }
 
@@ -62,12 +57,31 @@ namespace Testing
 
             //My files
 
+            string user = Server.MapPath("~/App_Data/") + Username.Text;
+            string[] files = Directory.GetFiles(user, "*", SearchOption.AllDirectories);
+            foreach (string filepath in files)
+            {
+                TextBox1.Text += filepath;
+
+            }
+            /*
+            List<ListItem> list = new List<ListItem>();
+
+            foreach (string filePath in files)
+                list.Add(new ListItem(Path.GetFileName(filePath), filePath));
+
+
+            GridView1.DataSource = list;
+            GridView1.DataBind();
+            MultiView.ActiveViewIndex = 0;
+            */
+            /*
             DataTable dt = SQL.getDataTable(userid);
             GridView1.DataSource = dt;
             GridView1.DataBind();
-
+            
             //Files shared with me
-    
+
             List<int> fileids = SQL.getShareFileID(userid);
             DataTable dt2 = new DataTable();
             DataRow row;
@@ -93,6 +107,8 @@ namespace Testing
             GridView2.DataBind();
             
             MultiView.ActiveViewIndex = 0;
+
+    */
         }
 
         protected void retrieveSharedUsers(int fileid)

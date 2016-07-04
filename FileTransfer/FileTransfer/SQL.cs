@@ -391,5 +391,17 @@ namespace FileTransfer
                 connection.Close();
             }
         }
+
+        public static void insertFile(string fileName,int fileSize, string path,int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID) VALUES ('" + fileName + "','" + fileSize + "','" + path + "','" + userid + "');";
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
     }
 }

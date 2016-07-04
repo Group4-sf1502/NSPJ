@@ -59,6 +59,11 @@
         <asp:Button ID="Button2" runat="server" OnClick="retrieve" Text="Retrieve"/>
 
     </p>
+    <p>
+        <asp:TextBox ID="TextBox1" runat="server" Height="300px" TextMode="MultiLine" Width="300px"></asp:TextBox>
+
+    </p>
+    
     
     <p>
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
@@ -76,8 +81,8 @@
         <asp:View ID="View1" runat="server">
             <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view">
                 <Columns>
-                    <asp:BoundField DataField="fileName" HeaderText="File Name" />
-                    <asp:BoundField DataField="uploadTime" HeaderText="Time of upload" />
+                    <asp:BoundField DataField="Text" HeaderText="File Name" />
+                    
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button"  runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button"  runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="Share" Text="Share" CssClass="button"  runat="server" OnClick="showpopup" /></ItemTemplate></asp:TemplateField>
