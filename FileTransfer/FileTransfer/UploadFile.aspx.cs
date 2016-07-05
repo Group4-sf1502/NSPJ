@@ -58,12 +58,11 @@ namespace Testing
             //My files
 
             string user = Server.MapPath("~/App_Data/") + Username.Text;
-            string[] files = Directory.GetFiles(user, "*", SearchOption.AllDirectories);
-            foreach (string filepath in files)
-            {
-                TextBox1.Text += filepath;
+            DataTable dt = fillTable(user);
+            GridView1.DataSource = dt;
+            GridView1.DataBind();
+            MultiView.ActiveViewIndex = 0;
 
-            }
             /*
             List<ListItem> list = new List<ListItem>();
 
@@ -222,9 +221,46 @@ namespace Testing
 
             if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                e.Row.CssClass = "normal";
+                e.Row.CssClass = "normal";                
             }
         }
+
+        protected override void Render(HtmlTextWriter writer)
+        {
+            string condition = "/";
+            foreach (GridViewRow r in GridView1.Rows)
+            {
+                if (r.RowType == DataControlRowType.DataRow)
+                {
+                    if (r.Cells[0].Text.Substring(0, 1).Equals(condition))
+                    {
+
+                        r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
+                        r.ToolTip = "Click to select row";
+                        r.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink(this.GridView1, "Select$" + r.RowIndex, true);
+
+                    }
+                
+                }
+            }
+
+            base.Render(writer);
+        }
+
+        /*
+        protected void RowCreated(object sender, GridViewRowEventArgs e)
+        {
+            string condition = "/";
+            if (e.Row.RowType == DataControlRowType.DataRow)
+            {
+                //if (e.Row.Cells[0].Text.Substring(0, 1).Equals(condition))
+                //{
+                e.Row.Attributes["onmouseover"] = "this.style.cursor = 'pointer';";
+                e.Row.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink(this.GridView1, "Select$" + e.Row.RowIndex);                //}
+            }
+        }
+        */
+
 
         private string getpath(object sender)
         {
@@ -246,5 +282,53 @@ namespace Testing
             return filePath;
         }
 
+        protected void GridView1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            string foldername;
+            string path;
+            foreach (GridViewRow row in GridView1.Rows)
+            {
+                if (row.RowIndex == GridView1.SelectedIndex)
+                {
+                    foldername = row.Cells[0].Text.Substring(1,row.Cells[0].Text.Length-2);
+                    path = Server.MapPath("~/App_Data/") + Username.Text + "/" + foldername;
+                    DataTable dt = fillTable(path);
+                    GridView1.DataSource = null;
+                    GridView1.DataBind();
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
+            }
+        }
+
+        protected DataTable fillTable(string path)
+        {
+            DataTable dt = new DataTable();
+            List<string> dir = new List<string>(Directory.EnumerateDirectories(path));
+            string[] files = Directory.GetFiles(path);
+            DataRow row;
+            DataColumn column = new DataColumn("Name");
+            column.DataType = Type.GetType("System.String");
+            DataColumn column2 = new DataColumn("Last modified");
+            column2.DataType = Type.GetType("System.String");
+            dt.Columns.Add(column);
+            dt.Columns.Add(column2);
+
+            for (int i = 0; i < dir.Count; i++)
+            {
+                row = dt.NewRow();
+                row["Name"] = "/" + Path.GetFileName(dir[i]) + "/";
+                dt.Rows.Add(row);
+            }
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                row = dt.NewRow();
+                row["Name"] = Path.GetFileName(files[i]);
+                dt.Rows.Add(row);
+            }
+
+            return dt;
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="uploadFile.aspx.cs" Inherits="Testing.uploadFile" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/Site.Master" AutoEventWireup="true" CodeBehind="uploadFile.aspx.cs" Inherits="Testing.uploadFile" EnableEventValidation="true"%>
 
 <%@ Register Assembly="AjaxControlToolkit" Namespace="AjaxControlToolkit" TagPrefix="ajaxToolkit" %>
 
@@ -60,7 +60,7 @@
 
     </p>
     <p>
-        <asp:TextBox ID="TextBox1" runat="server" Height="300px" TextMode="MultiLine" Width="300px"></asp:TextBox>
+        <asp:TextBox ID="TextBox1" runat="server" Height="75px" TextMode="MultiLine" Width="150px"></asp:TextBox>
 
     </p>
     
@@ -69,6 +69,9 @@
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
     </p>
+    <p>
+        <asp:Label ID="currdir" runat="server" Visible="false"></asp:Label>
+    </p>
 
     <p>
      <asp:Button ID="Button3" runat="server" OnClick="ViewMyFiles" Text="My Files"  />
@@ -76,12 +79,11 @@
      <asp:Button ID="Button4" runat="server" OnClick="ViewSharedFiles" Text="Files shared with me"  />
     </p>
     
-
      <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
-            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view">
+            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false"  EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged">
                 <Columns>
-                    <asp:BoundField DataField="Text" HeaderText="File Name" />
+                    <asp:BoundField DataField="Name" HeaderText="File Name" />
                     
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button"  runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate></asp:TemplateField>
                     <asp:TemplateField><ItemTemplate><asp:LinkButton ID="lnkDelete" Text="Delete" CssClass="button"  runat="server" OnClick="DeleteFile" /></ItemTemplate></asp:TemplateField>
