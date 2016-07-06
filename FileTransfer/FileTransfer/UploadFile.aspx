@@ -59,18 +59,11 @@
         <asp:Button ID="Button2" runat="server" OnClick="retrieve" Text="Retrieve"/>
 
     </p>
-    <p>
-        <asp:TextBox ID="TextBox1" runat="server" Height="75px" TextMode="MultiLine" Width="150px"></asp:TextBox>
-
-    </p>
     
     
     <p>
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
-    </p>
-    <p>
-        <asp:Label ID="currdir" runat="server" Visible="false"></asp:Label>
     </p>
 
     <p>

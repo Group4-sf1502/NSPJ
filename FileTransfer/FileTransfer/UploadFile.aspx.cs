@@ -16,6 +16,8 @@ namespace Testing
 {
     public partial class uploadFile : System.Web.UI.Page
     {
+        static Stack dirs = new Stack();
+
         protected void Page_Load(object sender, EventArgs e)
         {
             
@@ -26,27 +28,27 @@ namespace Testing
 
         protected void upload(object sender, EventArgs e)
         {
-            
-                if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
-                {
-                    System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
-                }
 
-                int userid = SQL.getUserID(Username.Text);
-                string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
-                string path = Server.MapPath("~/App_Data/") + Username.Text + "/" + fileName;
-                
-                FileUpload1.PostedFile.SaveAs(path);
-                Security.EncryptFile(path,path);
-                //Response.Redirect(Request.Url.AbsoluteUri);
-                Label1.Visible = true;
-                Label1.Text = "File successfully uploaded!";
+            if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
+            {
+                System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
+            }
+
+            int userid = SQL.getUserID(Username.Text);
+            string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
+            string path = Server.MapPath("~/App_Data/") + Username.Text + "/" + fileName;
+
+            FileUpload1.PostedFile.SaveAs(path);
+            Security.EncryptFile(path, path);
+            //Response.Redirect(Request.Url.AbsoluteUri);
+            Label1.Visible = true;
+            Label1.Text = "File successfully uploaded!";
 
 
             SQL.insertFile(fileName, FileUpload1.PostedFile.ContentLength, path, userid);
-                
-                
-            
+
+
+
 
         }
 
@@ -56,9 +58,10 @@ namespace Testing
             int userid = SQL.getUserID(Username.Text);
 
             //My files
-
+            
             string user = Server.MapPath("~/App_Data/") + Username.Text;
-            DataTable dt = fillTable(user);
+            dirs.Push(user);
+            DataTable dt = fillMainTable(user);
             GridView1.DataSource = dt;
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;
@@ -135,7 +138,7 @@ namespace Testing
 
         protected void DownloadSharedFile(object sender, EventArgs e)
         {
-            string filePath = getsharedpath(sender);      
+            string filePath = getsharedpath(sender);
             string filename = Path.GetFileName(filePath);
             string tempPath = Server.MapPath("~/temp/") + filename;
             File.Copy(filePath, tempPath);
@@ -193,10 +196,10 @@ namespace Testing
 
             int userid = SQL.getUserID(user);
             int shareduserid = SQL.getUserID(shareduser);
-            string filename = fileName.Text;  
+            string filename = fileName.Text;
             int fileid = SQL.getFileID(filename, userid);
-            SQL.insertShareFile(fileid,shareduserid,user);
-            
+            SQL.insertShareFile(fileid, shareduserid, user);
+
         }
 
         protected void RemoveFile(object sender, EventArgs e)
@@ -208,7 +211,7 @@ namespace Testing
 
         protected void RemoveShare(object sender, EventArgs e)
         {
-            int fileid = SQL.getFileID(fileName.Text,SQL.getUserID(Username.Text));
+            int fileid = SQL.getFileID(fileName.Text, SQL.getUserID(Username.Text));
             SQL.removeSharedFile(fileid);
         }
 
@@ -221,18 +224,19 @@ namespace Testing
 
             if (e.Row.RowType == DataControlRowType.DataRow)
             {
-                e.Row.CssClass = "normal";                
+                e.Row.CssClass = "normal";
             }
         }
 
         protected override void Render(HtmlTextWriter writer)
         {
             string condition = "/";
+            string condition2 = "..";
             foreach (GridViewRow r in GridView1.Rows)
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if (r.Cells[0].Text.Substring(0, 1).Equals(condition))
+                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
                     {
 
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
@@ -240,7 +244,7 @@ namespace Testing
                         r.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink(this.GridView1, "Select$" + r.RowIndex, true);
 
                     }
-                
+
                 }
             }
 
@@ -286,13 +290,39 @@ namespace Testing
         {
             string foldername;
             string path;
+            DataTable dt;
             foreach (GridViewRow row in GridView1.Rows)
             {
                 if (row.RowIndex == GridView1.SelectedIndex)
                 {
-                    foldername = row.Cells[0].Text.Substring(1,row.Cells[0].Text.Length-2);
-                    path = Server.MapPath("~/App_Data/") + Username.Text + "/" + foldername;
-                    DataTable dt = fillTable(path);
+                    if (row.Cells[0].Text.Equals(".."))
+                    {
+                        dirs.Pop();
+                        path = dirs.Peek().ToString();
+                        
+                        if (path.Equals(Server.MapPath("~/App_Data/") + Username.Text))
+                        {
+                            dt = fillMainTable(path);
+                        }
+                        else
+                        {
+                            dt = fillTable(path);
+                        }
+                        
+                        GridView1.DataSource = null;
+                        GridView1.DataBind();
+                        GridView1.DataSource = dt;
+                        GridView1.DataBind();
+                    }
+
+                    else
+                    {
+                        foldername = row.Cells[0].Text.Substring(1, row.Cells[0].Text.Length - 2);
+                        path = dirs.Peek().ToString() + "\\" + foldername;
+                        dt = fillTable(path);
+                        dirs.Push(path);
+                    }
+
                     GridView1.DataSource = null;
                     GridView1.DataBind();
                     GridView1.DataSource = dt;
@@ -302,6 +332,43 @@ namespace Testing
         }
 
         protected DataTable fillTable(string path)
+        {
+            string back = "..";
+            DataTable dt = new DataTable();
+            List<string> dir = new List<string>(Directory.EnumerateDirectories(path));
+            string[] files = Directory.GetFiles(path);
+            DataRow row;
+            DataColumn column = new DataColumn("Name");
+            column.DataType = Type.GetType("System.String");
+            DataColumn column2 = new DataColumn("Last modified");
+            column2.DataType = Type.GetType("System.String");
+            dt.Columns.Add(column);
+            dt.Columns.Add(column2);
+
+            
+
+            for (int i = 0; i < dir.Count; i++)
+            {
+                row = dt.NewRow();
+                row["Name"] = "/" + Path.GetFileName(dir[i]) + "/";
+                dt.Rows.Add(row);
+            }
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                row = dt.NewRow();
+                row["Name"] = Path.GetFileName(files[i]);
+                dt.Rows.Add(row);
+            }
+
+            row = dt.NewRow();
+            row["Name"] = back;
+            dt.Rows.Add(row);
+
+            return dt;
+        }
+
+        protected DataTable fillMainTable(string path)
         {
             DataTable dt = new DataTable();
             List<string> dir = new List<string>(Directory.EnumerateDirectories(path));
@@ -330,5 +397,7 @@ namespace Testing
 
             return dt;
         }
+
+       
     }
 }
