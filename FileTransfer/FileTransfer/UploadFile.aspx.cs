@@ -66,21 +66,9 @@ namespace Testing
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;
 
-            /*
-            List<ListItem> list = new List<ListItem>();
-
-            foreach (string filePath in files)
-                list.Add(new ListItem(Path.GetFileName(filePath), filePath));
-
-
-            GridView1.DataSource = list;
-            GridView1.DataBind();
-            MultiView.ActiveViewIndex = 0;
-            */
-            /*
-            DataTable dt = SQL.getDataTable(userid);
-            GridView1.DataSource = dt;
-            GridView1.DataBind();
+            
+            
+          
             
             //Files shared with me
 
@@ -107,10 +95,8 @@ namespace Testing
             
             GridView2.DataSource = dt2;
             GridView2.DataBind();
-            
-            MultiView.ActiveViewIndex = 0;
 
-    */
+    
         }
 
         protected void retrieveSharedUsers(int fileid)
@@ -251,19 +237,7 @@ namespace Testing
             base.Render(writer);
         }
 
-        /*
-        protected void RowCreated(object sender, GridViewRowEventArgs e)
-        {
-            string condition = "/";
-            if (e.Row.RowType == DataControlRowType.DataRow)
-            {
-                //if (e.Row.Cells[0].Text.Substring(0, 1).Equals(condition))
-                //{
-                e.Row.Attributes["onmouseover"] = "this.style.cursor = 'pointer';";
-                e.Row.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink(this.GridView1, "Select$" + e.Row.RowIndex);                //}
-            }
-        }
-        */
+       
 
 
         private string getpath(object sender)
@@ -398,6 +372,34 @@ namespace Testing
             return dt;
         }
 
-       
+        protected void moveto(object sender, EventArgs e) 
+        {
+            int fileid = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
+            string selectedfolder = dirlist.SelectedNode.Text;
+            TextBox1.Text += selectedfolder;
+        }
+
+        protected void fillTree(object sender, EventArgs e) 
+        {
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string filename = grv.Cells[0].Text;
+            Label3.Text += filename;
+            dirlist.Nodes.Clear();
+            var rootDirectoryInfo = new DirectoryInfo(Server.MapPath("~/App_Data/") + Username.Text);
+            dirlist.Nodes.Add(getNodes(rootDirectoryInfo));
+        }
+        
+        protected TreeNode getNodes(DirectoryInfo dirinfo)
+        {
+            var directorynode = new TreeNode(dirinfo.Name);
+           
+            foreach (var directory in dirinfo.GetDirectories())
+            {
+                directorynode.ChildNodes.Add(getNodes(directory));
+            }
+
+            return directorynode;
+        }
     }
 }

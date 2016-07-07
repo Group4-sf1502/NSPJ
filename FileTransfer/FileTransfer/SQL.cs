@@ -403,5 +403,19 @@ namespace FileTransfer
                 cmd.ExecuteNonQuery();
             }
         }
+
+        public static void moveFile(int fileid, string path)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "UPDATE [UserFiles] SET filePath = '" + path + "' WHERE fileID = '" + fileid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+
+                connection.Close();
+            }
+        }
     }
 }
