@@ -375,12 +375,13 @@ namespace Testing
         protected void moveto(object sender, EventArgs e) 
         {
             int fileid = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
-            string selectedfolder = dirlist.SelectedNode.Text;
-            TextBox1.Text += selectedfolder;
+            string selectedfolder = dirlist.SelectedNode
+            
         }
 
         protected void fillTree(object sender, EventArgs e) 
         {
+            ModalPopupExtender3.Show();
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
             string filename = grv.Cells[0].Text;
