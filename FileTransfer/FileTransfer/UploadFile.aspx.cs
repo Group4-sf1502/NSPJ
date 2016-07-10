@@ -48,9 +48,6 @@ namespace Testing
 
             SQL.insertFile(fileName, FileUpload1.PostedFile.ContentLength, path, userid);
 
-
-
-
         }
 
 
@@ -225,11 +222,9 @@ namespace Testing
                 {
                     if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
                     {
-
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
                         r.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink(this.GridView1, "Select$" + r.RowIndex, true);
-
                     }
 
                 }
@@ -379,8 +374,15 @@ namespace Testing
             ModalPopupExtender3.Show();
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string filename = grv.Cells[0].Text;
-            Label3.Text += filename;
+            string name = grv.Cells[0].Text;
+            if (name.Substring(0, 1).Equals("/"))
+            {
+                Label3.Text += name.Substring(1, name.Length - 2);
+            }
+            else
+            {
+                Label3.Text += name;
+            }
             dirlist.Nodes.Clear();
             var rootDirectoryInfo = new DirectoryInfo(Server.MapPath("~/App_Data/") + Username.Text);
             dirlist.Nodes.Add(getNodes(rootDirectoryInfo));
@@ -404,29 +406,40 @@ namespace Testing
 
         protected void move_Click(object sender, EventArgs e)
         {
-            int id = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
-            string filepath = SQL.getFilePaths(Label3.Text, SQL.getUserID(Username.Text));
-            string path = Server.MapPath("~/App_data/");
-            List<TreeNode> tree = new List<TreeNode>();
-            TreeNode node = dirlist.SelectedNode;
-
-            while (node != null)
+            if (Label3.Text.Substring(0, 1).Equals("/"))
             {
-                tree.Add(node);
-                node = node.Parent;
+                string foldername = Label3.Text;
+
+
             }
 
-            tree.Reverse();
-
-            foreach (TreeNode i in tree)
+            else
             {
-                path += i.Text + "\\";
-            }
-            path += Label3.Text;
 
-            SQL.moveFile(id,path);
-           
-            File.Move(filepath, path);
+                int id = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
+                string filepath = SQL.getFilePaths(Label3.Text, SQL.getUserID(Username.Text));
+                string path = Server.MapPath("~/App_data/");
+                List<TreeNode> tree = new List<TreeNode>();
+                TreeNode node = dirlist.SelectedNode;
+
+                while (node != null)
+                {
+                    tree.Add(node);
+                    node = node.Parent;
+                }
+
+                tree.Reverse();
+
+                foreach (TreeNode i in tree)
+                {
+                    path += i.Text + "\\";
+                }
+                path += Label3.Text;
+
+                SQL.moveFile(id, path);
+
+                File.Move(filepath, path);
+            }
 
             ModalPopupExtender3.Hide();
 
