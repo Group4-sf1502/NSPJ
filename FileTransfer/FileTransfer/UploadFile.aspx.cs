@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using FileTransfer;
 using System.Data;
 
+
 namespace Testing
 {
     public partial class uploadFile : System.Web.UI.Page
@@ -20,7 +21,7 @@ namespace Testing
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            
+
         }
 
         public void SaveAs(String fileName)
@@ -58,7 +59,7 @@ namespace Testing
             int userid = SQL.getUserID(Username.Text);
 
             //My files
-            
+
             string user = Server.MapPath("~/App_Data/") + Username.Text;
             dirs.Push(user);
             DataTable dt = fillMainTable(user);
@@ -66,10 +67,10 @@ namespace Testing
             GridView1.DataBind();
             MultiView.ActiveViewIndex = 0;
 
-            
-            
-          
-            
+
+
+
+
             //Files shared with me
 
             List<int> fileids = SQL.getShareFileID(userid);
@@ -83,7 +84,7 @@ namespace Testing
             dt2.Columns.Add(column2);
             List<String> files = SQL.getSharedDataTable(fileids);
             List<String> usernames = SQL.getShareUser(userid);
-            
+
             for (int i = 0; i < files.Count(); i++)
             {
                 row = dt2.NewRow();
@@ -92,11 +93,11 @@ namespace Testing
                 dt2.Rows.Add(row);
             }
 
-            
+
             GridView2.DataSource = dt2;
             GridView2.DataBind();
 
-    
+
         }
 
         protected void retrieveSharedUsers(int fileid)
@@ -237,7 +238,7 @@ namespace Testing
             base.Render(writer);
         }
 
-       
+
 
 
         private string getpath(object sender)
@@ -273,7 +274,7 @@ namespace Testing
                     {
                         dirs.Pop();
                         path = dirs.Peek().ToString();
-                        
+
                         if (path.Equals(Server.MapPath("~/App_Data/") + Username.Text))
                         {
                             dt = fillMainTable(path);
@@ -282,7 +283,7 @@ namespace Testing
                         {
                             dt = fillTable(path);
                         }
-                        
+
                         GridView1.DataSource = null;
                         GridView1.DataBind();
                         GridView1.DataSource = dt;
@@ -319,7 +320,9 @@ namespace Testing
             dt.Columns.Add(column);
             dt.Columns.Add(column2);
 
-            
+            row = dt.NewRow();
+            row["Name"] = back;
+            dt.Rows.Add(row);
 
             for (int i = 0; i < dir.Count; i++)
             {
@@ -335,9 +338,7 @@ namespace Testing
                 dt.Rows.Add(row);
             }
 
-            row = dt.NewRow();
-            row["Name"] = back;
-            dt.Rows.Add(row);
+            
 
             return dt;
         }
@@ -372,8 +373,9 @@ namespace Testing
             return dt;
         }
 
-        protected void fillTree(object sender, EventArgs e) 
+        protected void fillTree(object sender, EventArgs e)
         {
+            Label3.Text = "";
             ModalPopupExtender3.Show();
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
@@ -383,38 +385,63 @@ namespace Testing
             var rootDirectoryInfo = new DirectoryInfo(Server.MapPath("~/App_Data/") + Username.Text);
             dirlist.Nodes.Add(getNodes(rootDirectoryInfo));
         }
-        
+
         protected TreeNode getNodes(DirectoryInfo dirinfo)
         {
             var directorynode = new TreeNode(dirinfo.Name);
-           
+
             foreach (var directory in dirinfo.GetDirectories())
             {
                 directorynode.ChildNodes.Add(getNodes(directory));
             }
             directorynode.NavigateUrl = "javascript:void(0)";
+            directorynode.Target = "_self";
+            directorynode.SelectAction = TreeNodeSelectAction.Select;
             return directorynode;
         }
 
-        protected void Button6_Click(object sender, EventArgs e)
-        {
-            // Directory.Delete(Server.MapPath("~/App_Data/Daryl/Java/secret"), true);
-            // TextBox1.Text += dirs.Peek().ToString();
-        }
+      
 
         protected void move_Click(object sender, EventArgs e)
         {
-            int fileid = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
+            int id = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
+            string filepath = SQL.getFilePaths(Label3.Text, SQL.getUserID(Username.Text));
+            string path = Server.MapPath("~/App_data/");
             List<TreeNode> tree = new List<TreeNode>();
             TreeNode node = dirlist.SelectedNode;
-            while (!node.Equals(null))
+
+            while (node != null)
+            {
+                tree.Add(node);
+                node = node.Parent;
+            }
+
+            tree.Reverse();
 
             foreach (TreeNode i in tree)
-             {
-                 TextBox1.Text += i.Text;
-             }
-             
+            {
+                path += i.Text + "\\";
+            }
+            path += Label3.Text;
+
+            SQL.moveFile(id,path);
+           
+            File.Move(filepath, path);
+
             ModalPopupExtender3.Hide();
+
+
+        }
+
+        protected void dirlist_SelectedNodeChanged(object sender, EventArgs e)
+        {
+
+        }
+
+        protected void addFolder_Click(object sender, EventArgs e)
+        {
+            // Popup for folder name
+            // Directory.createdirectory
         }
     }
 }

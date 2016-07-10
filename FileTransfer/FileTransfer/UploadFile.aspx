@@ -62,8 +62,8 @@
     <p>
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
-        <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine"></asp:TextBox>
-        <asp:Button ID="Button6" runat="server" Text="Button" OnClick="Button6_Click" />
+        &nbsp;&nbsp;
+        <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="75px" />
 
     </p>
 
@@ -148,7 +148,7 @@
         <br />
         <br />
          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <asp:TreeView ID="dirlist" runat="server" ></asp:TreeView>
+        <asp:TreeView ID="dirlist" runat="server" OnSelectedNodeChanged="dirlist_SelectedNodeChanged" ></asp:TreeView>
         <br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <asp:Button ID="move" runat="server" Text="Move" OnClick="move_Click" />
