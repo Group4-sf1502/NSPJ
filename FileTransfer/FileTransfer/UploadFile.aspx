@@ -63,7 +63,7 @@
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
         <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine"></asp:TextBox>
-        <asp:Button ID="Button6" runat="server" Text="Button" onclick="moveto"/>
+        <asp:Button ID="Button6" runat="server" Text="Button" OnClick="Button6_Click" />
 
     </p>
 
@@ -142,17 +142,18 @@
         <asp:Button ID="Button5" runat="server" Text="Cancel" />
     </asp:Panel>
     <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender2" runat="server" PopupControlID="panel1" TargetControlID="show" BackgroundCssClass="background"></ajaxToolkit:ModalPopupExtender>
-    <asp:Panel ID="panel2" runat="server" CssClass="popup" Height="300px" Style="display:none">
+    <asp:Panel ID="panel2" runat="server" CssClass="popup" Height="300px" >
         <asp:Label ID="Label2" runat="server" Text="Move"></asp:Label>
         <asp:Label ID="Label3" runat="server"></asp:Label>
         <br />
         <br />
-        <asp:TreeView ID="dirlist" runat="server"></asp:TreeView>
+         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <asp:TreeView ID="dirlist" runat="server" ></asp:TreeView>
         <br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <asp:Button ID="move" runat="server" OnClick="moveto" Text="Move" />
+        <asp:Button ID="move" runat="server" Text="Move" OnClick="move_Click" />
         &nbsp;&nbsp;
         <asp:Button ID="Button7" runat="server" Text="Cancel" />
     </asp:Panel>
-    <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender3" runat="server" PopupControlID="panel2"  TargetControlID="show" BackgroundCssClass="background" OkControlID="move" CancelControlID="Button7"></ajaxToolkit:ModalPopupExtender>
+    <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender3" runat="server" PopupControlID="panel2"  TargetControlID="show" BackgroundCssClass="background" CancelControlID="Button7"></ajaxToolkit:ModalPopupExtender>
 </asp:Content>

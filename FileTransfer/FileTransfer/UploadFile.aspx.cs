@@ -372,13 +372,6 @@ namespace Testing
             return dt;
         }
 
-        protected void moveto(object sender, EventArgs e) 
-        {
-            int fileid = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
-            string selectedfolder = dirlist.SelectedNode
-            
-        }
-
         protected void fillTree(object sender, EventArgs e) 
         {
             ModalPopupExtender3.Show();
@@ -399,8 +392,29 @@ namespace Testing
             {
                 directorynode.ChildNodes.Add(getNodes(directory));
             }
-
+            directorynode.NavigateUrl = "javascript:void(0)";
             return directorynode;
+        }
+
+        protected void Button6_Click(object sender, EventArgs e)
+        {
+            // Directory.Delete(Server.MapPath("~/App_Data/Daryl/Java/secret"), true);
+            // TextBox1.Text += dirs.Peek().ToString();
+        }
+
+        protected void move_Click(object sender, EventArgs e)
+        {
+            int fileid = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
+            List<TreeNode> tree = new List<TreeNode>();
+            TreeNode node = dirlist.SelectedNode;
+            while (!node.Equals(null))
+
+            foreach (TreeNode i in tree)
+             {
+                 TextBox1.Text += i.Text;
+             }
+             
+            ModalPopupExtender3.Hide();
         }
     }
 }
