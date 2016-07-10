@@ -65,6 +65,8 @@
         &nbsp;&nbsp;
         <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="75px" />
 
+        <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine"></asp:TextBox>
+
     </p>
 
     <p>

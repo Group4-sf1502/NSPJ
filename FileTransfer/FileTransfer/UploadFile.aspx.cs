@@ -375,14 +375,7 @@ namespace Testing
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
             string name = grv.Cells[0].Text;
-            if (name.Substring(0, 1).Equals("/"))
-            {
-                Label3.Text += name.Substring(1, name.Length - 2);
-            }
-            else
-            {
-                Label3.Text += name;
-            }
+            Label3.Text += name;
             dirlist.Nodes.Clear();
             var rootDirectoryInfo = new DirectoryInfo(Server.MapPath("~/App_Data/") + Username.Text);
             dirlist.Nodes.Add(getNodes(rootDirectoryInfo));
@@ -408,7 +401,32 @@ namespace Testing
         {
             if (Label3.Text.Substring(0, 1).Equals("/"))
             {
+                
                 string foldername = Label3.Text;
+                string path = Server.MapPath("~/App_Data/");
+                string originalpath = "";
+
+                List<TreeNode> tree = new List<TreeNode>();
+                TreeNode node = dirlist.SelectedNode;
+
+                while (node != null)
+                {
+                    tree.Add(node);
+                    node = node.Parent;
+                }
+
+                tree.Reverse();
+
+                foreach (TreeNode i in tree)
+                {
+                    path += i.Text + "\\";
+                }
+
+                path += Label3.Text.Substring(1,Label3.Text.Length-2) + "\\";
+                
+                originalpath += dirs.Peek().ToString() + "\\" + Label3.Text.Substring(1,Label3.Text.Length-2) + "\\";
+
+                Directory.Move(originalpath, path);
 
 
             }
