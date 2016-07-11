@@ -65,7 +65,7 @@
         &nbsp;&nbsp;
         <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="75px" />
 
-        <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine"></asp:TextBox>
+        <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine" Height="200px"></asp:TextBox>
 
     </p>
 
@@ -80,7 +80,7 @@
             <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged">
                 <Columns>
                     <asp:BoundField DataField="Name" HeaderText="File Name" />
-
+                    <asp:BoundField DataField="Last Modified" HeaderText="Last Modified" />
                     <asp:TemplateField>
                         <ItemTemplate>
                             <asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button" runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate>
@@ -158,4 +158,15 @@
         <asp:Button ID="Button7" runat="server" Text="Cancel" />
     </asp:Panel>
     <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender3" runat="server" PopupControlID="panel2"  TargetControlID="show" BackgroundCssClass="background" CancelControlID="Button7"></ajaxToolkit:ModalPopupExtender>
+    <asp:Panel ID="panel3" runat="server" CssClass="popup" Height="150px">
+        <asp:Label ID="Label4" runat="server" Text="Create Folder"></asp:Label>
+        <br />
+        <asp:Label ID="folder" runat="server" Text="Folder name: "></asp:Label>
+        <asp:TextBox ID="foldername" runat="server"></asp:TextBox>
+        <br />
+        <br />
+        <asp:Button ID="createfolder" runat="server" OnClick="cr8folder" Text="Create"/>
+        <asp:Button ID="cancel2" runat="server" Text="Cancel"/>
+    </asp:Panel>
+    <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender4" runat="server" PopupControlID="panel3" TargetControlID="show" BackgroundCssClass="background" CancelControlID="cancel2"></ajaxToolkit:ModalPopupExtender>
 </asp:Content>

@@ -378,6 +378,28 @@ namespace FileTransfer
             }
         }
 
+        public static void deleteFiles(List<string> filePath,int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.Connection = connection;
+                connection.Open();
+                string path;
+                int fileid;
+                int count = filePath.Count;
+                for (int i = 0; i < count;i++)
+                {
+                    path = filePath[i];
+                    fileid = SQL.getFileID(path);
+                    cmd.CommandText = "DELETE FROM [sharedFiles] WHERE fileID = '" + fileid + "';";
+                    cmd.ExecuteNonQuery();
+                    cmd.CommandText = "DELETE FROM [UserFiles] WHERE fileID = '" + fileid + "';";
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
         public static void removeSharedFile(int fileid)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
@@ -415,6 +437,30 @@ namespace FileTransfer
                 cmd.ExecuteNonQuery();
 
                 connection.Close();
+            }
+        }
+
+        public static void moveFolder(List<string> filename, int userid, List<string> filepath)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                string command;
+                string path, name;
+                int count = filename.Count;
+                cmd.Connection = connection;
+                connection.Open();
+                for (int i = 0; i < count; i++) {
+                    path = filepath[i];
+                    name = filename[i];
+                    command = "UPDATE [UserFiles] SET filePath = '" + path + "' WHERE fileName = '" + name + "' AND userID = '" + userid + "';";
+                    //UPDATE [UserFiles] SET filePath = 'C:\Users\daryl\Source\Repos\NSPJ\FileTransfer\FileTransfer\App_data\daryl\Java\OS\New Text Document.dat' WHERE fileName = 'New Text Document.dat' AND userID = 11;
+                    cmd.CommandText = command;
+                    cmd.ExecuteNonQuery();
+                }
+
+                connection.Close();
+                
             }
         }
     }

@@ -21,7 +21,7 @@ namespace Testing
 
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            GridView1.RowStyle.Height = 50;
         }
 
         public void SaveAs(String fileName)
@@ -37,7 +37,7 @@ namespace Testing
 
             int userid = SQL.getUserID(Username.Text);
             string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
-            string path = Server.MapPath("~/App_Data/") + Username.Text + "/" + fileName;
+            string path = dirs.Peek().ToString() + "\\" + fileName;
 
             FileUpload1.PostedFile.SaveAs(path);
             Security.EncryptFile(path, path);
@@ -138,10 +138,27 @@ namespace Testing
         }
         protected void DeleteFile(object sender, EventArgs e)
         {
-            string filePath = getpath(sender);
-            File.Delete(filePath);
-            SQL.deleteFile(filePath);
-            Response.Redirect(Request.Url.AbsoluteUri);
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string filename = grv.Cells[0].Text;
+            if (filename.Substring(0, 1).Equals("/"))
+            {
+                string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                List<string> files = new List<string>(Directory.GetFiles(foldername, "*", SearchOption.AllDirectories));
+                SQL.deleteFiles(files, SQL.getUserID(Username.Text));
+                foreach (string i in files)
+                {
+                    File.Delete(i);
+                }
+                Directory.Delete(foldername);
+            }
+            else
+            {
+                string filePath = getpath(sender);
+                File.Delete(filePath);
+                SQL.deleteFile(filePath);
+            }
+
         }
 
         protected void ViewMyFiles(object sender, EventArgs e)
@@ -317,12 +334,14 @@ namespace Testing
 
             row = dt.NewRow();
             row["Name"] = back;
+            row["Last modified"] = "--";
             dt.Rows.Add(row);
 
             for (int i = 0; i < dir.Count; i++)
             {
                 row = dt.NewRow();
                 row["Name"] = "/" + Path.GetFileName(dir[i]) + "/";
+                row["Last Modified"] = "--";
                 dt.Rows.Add(row);
             }
 
@@ -330,10 +349,11 @@ namespace Testing
             {
                 row = dt.NewRow();
                 row["Name"] = Path.GetFileName(files[i]);
+                row["Last Modified"] = File.GetLastWriteTime(files[i]);
                 dt.Rows.Add(row);
             }
 
-            
+
 
             return dt;
         }
@@ -355,6 +375,7 @@ namespace Testing
             {
                 row = dt.NewRow();
                 row["Name"] = "/" + Path.GetFileName(dir[i]) + "/";
+                row["Last Modified"] = "--";
                 dt.Rows.Add(row);
             }
 
@@ -362,6 +383,7 @@ namespace Testing
             {
                 row = dt.NewRow();
                 row["Name"] = Path.GetFileName(files[i]);
+                row["Last Modified"] = File.GetLastWriteTime(files[i]);
                 dt.Rows.Add(row);
             }
 
@@ -395,13 +417,13 @@ namespace Testing
             return directorynode;
         }
 
-      
+
 
         protected void move_Click(object sender, EventArgs e)
         {
             if (Label3.Text.Substring(0, 1).Equals("/"))
             {
-                
+
                 string foldername = Label3.Text;
                 string path = Server.MapPath("~/App_Data/");
                 string originalpath = "";
@@ -422,14 +444,23 @@ namespace Testing
                     path += i.Text + "\\";
                 }
 
-                path += Label3.Text.Substring(1,Label3.Text.Length-2) + "\\";
-                
-                originalpath += dirs.Peek().ToString() + "\\" + Label3.Text.Substring(1,Label3.Text.Length-2) + "\\";
+                path += Label3.Text.Substring(1, Label3.Text.Length - 2) + "\\";
+
+                originalpath += dirs.Peek().ToString() + "\\" + Label3.Text.Substring(1, Label3.Text.Length - 2) + "\\";
 
                 Directory.Move(originalpath, path);
 
+                List<string> filepaths = new List<string>(Directory.GetFiles(path, "*", SearchOption.AllDirectories));
+                List<string> filenames = new List<string>();
+                int userid = SQL.getUserID(Username.Text);
+                foreach (string i in filepaths)
+                {
+                    filenames.Add(Path.GetFileName(i));
+                }
 
+                SQL.moveFolder(filenames, userid, filepaths);
             }
+
 
             else
             {
@@ -471,8 +502,16 @@ namespace Testing
 
         protected void addFolder_Click(object sender, EventArgs e)
         {
+            ModalPopupExtender4.Show();
             // Popup for folder name
             // Directory.createdirectory
+        }
+
+        protected void cr8folder(object sender, EventArgs e)
+        {
+            string folder = foldername.Text;
+            string path = dirs.Peek().ToString() + "\\" + folder;
+            Directory.CreateDirectory(path);
         }
     }
 }
