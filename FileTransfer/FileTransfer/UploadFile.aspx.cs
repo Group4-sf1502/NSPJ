@@ -11,7 +11,7 @@ using AjaxControlToolkit;
 using System.Data.SqlClient;
 using FileTransfer;
 using System.Data;
-
+using System.IO.Compression;
 
 namespace Testing
 {
@@ -21,7 +21,7 @@ namespace Testing
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            GridView1.RowStyle.Height = 50;
+            GridView1.RowStyle.Height = 30;
         }
 
         public void SaveAs(String fileName)
@@ -106,18 +106,57 @@ namespace Testing
 
         protected void DownloadFile(object sender, EventArgs e)
         {
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string filename = grv.Cells[0].Text;
             string filePath = getpath(sender);
-            string filename = Path.GetFileName(filePath);
-            string tempPath = Server.MapPath("~/temp/") + filename;
-            File.Copy(filePath, tempPath);
-            Security.DecryptFile(tempPath, tempPath);
-            Response.ClearContent();
-            Response.ContentType = ContentType;
-            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
-            Response.TransmitFile(tempPath);
-            Response.Flush();
-            File.Delete(tempPath);
-            Response.End();
+
+            if (filename.Substring(0, 1).Equals("/"))
+            {
+                string source = dirs.Peek().ToString() + "\\" + filename.Substring(1,filename.Length-2);
+                string mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
+                string dest = mainfolder + "\\" + filename.Substring(1,filename.Length-2);
+                string zip = Server.MapPath("~/temp/") + filename.Substring(1,filename.Length-2) + ".zip";
+
+                Directory.CreateDirectory(mainfolder);
+                
+                
+                foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+                {
+                    Directory.CreateDirectory(dest + dir.Substring(source.Length));
+                }
+                List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
+                foreach (string file_name in filepaths)
+                {
+                    File.Copy(file_name, dest + file_name.Substring(source.Length));
+                    Security.DecryptFile(dest+file_name.Substring(source.Length),dest+ file_name.Substring(source.Length));
+                }
+
+                ZipFile.CreateFromDirectory(mainfolder, zip);
+                Response.ClearContent();
+                Response.ContentType = ContentType;
+                Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(zip));
+                Response.TransmitFile(zip);
+                Response.Flush();
+                Directory.Delete(mainfolder,true);
+                File.Delete(zip);
+                Response.End();
+            
+            }
+            else
+            {
+                string tempPath = Server.MapPath("~/temp/") + filename;
+                File.Copy(filePath, tempPath);
+                Security.DecryptFile(tempPath, tempPath);
+                Response.ClearContent();
+                Response.ContentType = ContentType;
+                Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
+                Response.TransmitFile(tempPath);
+                Response.Flush();
+                File.Delete(tempPath);
+                Response.End();
+            }
+            
         }
 
         protected void DownloadSharedFile(object sender, EventArgs e)
