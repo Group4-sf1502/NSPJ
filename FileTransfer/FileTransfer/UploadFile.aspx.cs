@@ -48,6 +48,8 @@ namespace Testing
 
             SQL.insertFile(fileName, FileUpload1.PostedFile.ContentLength, path, userid);
 
+
+
         }
 
 
@@ -68,17 +70,27 @@ namespace Testing
 
 
 
-            //Files shared with me
-
-            List<int> fileids = SQL.getShareFileID(userid);
+            // Folders shared with me
             DataTable dt2 = new DataTable();
             DataRow row;
-            DataColumn column = new DataColumn("fileName");
+            DataColumn column = new DataColumn("Name");
             column.DataType = Type.GetType("System.String");
             DataColumn column2 = new DataColumn("Username");
             column2.DataType = Type.GetType("System.String");
             dt2.Columns.Add(column);
             dt2.Columns.Add(column2);
+            List<string> folders = SQL.getSharedFolderPath(userid);
+            foreach (string i in folders)
+            {
+                row = dt2.NewRow();
+                row["Name"] = "/" + Path.GetFileName(i) + "/";
+                dt2.Rows.Add(row);
+            }
+            
+
+            // Files
+            List<int> fileids = SQL.getShareFileID(userid);
+            
             List<String> files = SQL.getSharedDataTable(fileids);
             List<String> usernames = SQL.getShareUser(userid);
 
@@ -220,25 +232,45 @@ namespace Testing
 
         protected void showpopup(object sender, EventArgs e)
         {
-            string filepath = getpath(sender);
-            string filename = Path.GetFileName(filepath);
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string name = grv.Cells[0].Text;
+            if (name.Substring(0,1).Equals("/"))
+            {
+                fileName.Text = name;
+                string path = dirs.Peek().ToString() + name;
+                retrieveSharedFolders(path);
+            }
+            /*
             int fileid = SQL.getFileID(filepath);
             fileName.Text = filename;
             retrieveSharedUsers(fileid);
             ModalPopupExtender2.Show();
-        }
+        */}
 
         protected void fileshare(object sender, EventArgs e)
         {
 
+            string filename = fileName.Text;
             string shareduser = sharedUser.Text;
             string user = Username.Text;
-
             int userid = SQL.getUserID(user);
             int shareduserid = SQL.getUserID(shareduser);
-            string filename = fileName.Text;
-            int fileid = SQL.getFileID(filename, userid);
-            SQL.insertShareFile(fileid, shareduserid, user);
+
+            if (filename.Substring(0, 1).Equals("/"))
+            {
+                string path = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                SQL.insertShareFolder(path,userid,shareduserid);
+            }
+
+            else
+            {
+
+                
+                int fileid = SQL.getFileID(filename, userid);
+                SQL.insertShareFile(fileid, shareduserid, user);
+
+            }
 
         }
 

@@ -63,7 +63,7 @@
         <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
         &nbsp;&nbsp;
-        <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="75px" />
+        <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="85px" />
 
         <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine" Height="200px"></asp:TextBox>
 

@@ -252,6 +252,18 @@ namespace FileTransfer
             }
         }
 
+        public static void insertShareFolder(string path, int userid, int shareduserid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.Connection = connection;
+                cmd.CommandText = "INSERT INTO [sharedFolder] VALUES ('" + path + "', '" + shareduserid + "','" + userid + "');";
+                connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+        }
+
         public static int getFileID(String fileName, int userid)
         {
             int fileid = 0;
@@ -463,5 +475,43 @@ namespace FileTransfer
                 
             }
         }
+
+        public static DataTable retrieveSharedFolders(string path)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT Username FROM [User] INNER JOIN sharedFolder ON sharedFolder.sharedWith = [User].userID WHERE folderPath = '" + path + "';";
+                cmd.Connection = connection;
+                connection.Open();
+              
+                }
+            }
+        }
+
+        public static List<string> getSharedFolderPath(int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                List<string> folders = new List<string>();
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT folderPath,userID FROM [sharedFolder] WHERE sharedWith = '" + userid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    while (rd.Read())
+                    {
+                        folders.Add(rd.GetString(0));
+                    }
+                }
+                connection.Close();
+                rd.Close();
+                return folders;
+            }
+        }
+        
+        
     }
 }
