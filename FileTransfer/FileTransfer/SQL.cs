@@ -34,7 +34,7 @@ namespace FileTransfer
             List<String> filenames = new List<String>();
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
-                
+
                 int size = fileid.Count();
                 SqlDataAdapter sda = new SqlDataAdapter();
                 if (size > 0)
@@ -66,7 +66,7 @@ namespace FileTransfer
                     rd.Close();
 
                 }
-                
+
                 return filenames;
             }
         }
@@ -83,8 +83,8 @@ namespace FileTransfer
                 connection.Open();
                 SqlDataAdapter sda = new SqlDataAdapter();
                 sda.SelectCommand = cmd;
-                sda.Fill(dt);               
-                
+                sda.Fill(dt);
+
                 connection.Close();
                 return dt;
             }
@@ -92,9 +92,9 @@ namespace FileTransfer
 
         public static List<String> getShareUser(int shareduser)
         {
-            
+
             List<String> usernames = new List<String>();
-            
+
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
                 string command = "SELECT Username from [sharedFiles] WHERE shareduser = '" + shareduser + "';";
@@ -238,7 +238,7 @@ namespace FileTransfer
 
 
 
-        public static void insertShareFile(int fileid, int shareduserid,string username)
+        public static void insertShareFile(int fileid, int shareduserid, string username)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
@@ -252,13 +252,13 @@ namespace FileTransfer
             }
         }
 
-        public static void insertShareFolder(string path, int userid, int shareduserid)
+        public static void insertShareFolder(string path, int userid, int shareduserid,string name)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
                 SqlCommand cmd = new SqlCommand();
                 cmd.Connection = connection;
-                cmd.CommandText = "INSERT INTO [sharedFolder] VALUES ('" + path + "', '" + shareduserid + "','" + userid + "');";
+                cmd.CommandText = "INSERT INTO [sharedFolder] VALUES ('" + path + "', '" + shareduserid + "','" + userid + "','" + name + "');";
                 connection.Open();
                 cmd.ExecuteNonQuery();
             }
@@ -390,7 +390,7 @@ namespace FileTransfer
             }
         }
 
-        public static void deleteFiles(List<string> filePath,int userid)
+        public static void deleteFiles(List<string> filePath, int userid)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
@@ -400,7 +400,7 @@ namespace FileTransfer
                 string path;
                 int fileid;
                 int count = filePath.Count;
-                for (int i = 0; i < count;i++)
+                for (int i = 0; i < count; i++)
                 {
                     path = filePath[i];
                     fileid = SQL.getFileID(path);
@@ -426,7 +426,7 @@ namespace FileTransfer
             }
         }
 
-        public static void insertFile(string fileName,int fileSize, string path,int userid)
+        public static void insertFile(string fileName, int fileSize, string path, int userid)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
@@ -462,17 +462,17 @@ namespace FileTransfer
                 int count = filename.Count;
                 cmd.Connection = connection;
                 connection.Open();
-                for (int i = 0; i < count; i++) {
+                for (int i = 0; i < count; i++)
+                {
                     path = filepath[i];
                     name = filename[i];
                     command = "UPDATE [UserFiles] SET filePath = '" + path + "' WHERE fileName = '" + name + "' AND userID = '" + userid + "';";
-                    //UPDATE [UserFiles] SET filePath = 'C:\Users\daryl\Source\Repos\NSPJ\FileTransfer\FileTransfer\App_data\daryl\Java\OS\New Text Document.dat' WHERE fileName = 'New Text Document.dat' AND userID = 11;
                     cmd.CommandText = command;
                     cmd.ExecuteNonQuery();
                 }
 
                 connection.Close();
-                
+
             }
         }
 
@@ -480,22 +480,39 @@ namespace FileTransfer
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
+                DataTable dt = new DataTable();
                 SqlCommand cmd = new SqlCommand();
                 cmd.CommandText = "SELECT Username FROM [User] INNER JOIN sharedFolder ON sharedFolder.sharedWith = [User].userID WHERE folderPath = '" + path + "';";
                 cmd.Connection = connection;
                 connection.Open();
-              
-                }
+                SqlDataAdapter sda = new SqlDataAdapter();
+                sda.SelectCommand = cmd;
+                sda.Fill(dt);
+                connection.Close();
+                return dt;
             }
         }
 
-        public static List<string> getSharedFolderPath(int userid)
+        public static void deleteSharedFolder(string path, int sharedwith)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "DELETE FROM [sharedFolder] WHERE folderPath = '" + path + "' AND sharedWith = '" + sharedwith + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                cmd.ExecuteNonQuery();
+                connection.Close();
+            }
+        }
+
+        public static List<string> getSharedFolderPath(int sharewith)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
                 List<string> folders = new List<string>();
                 SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "SELECT folderPath,userID FROM [sharedFolder] WHERE sharedWith = '" + userid + "';";
+                cmd.CommandText = "SELECT folderPath,userID FROM [sharedFolder] WHERE sharedWith = '" + sharewith + "';";
                 cmd.Connection = connection;
                 connection.Open();
                 SqlDataReader rd = cmd.ExecuteReader();
@@ -511,7 +528,52 @@ namespace FileTransfer
                 return folders;
             }
         }
-        
-        
+
+        public static string getSharedFolderPath(string foldername,int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                string path = "";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT folderPath FROM [sharedFolder] WHERE folderName = '" + foldername + "' AND userID = '" + userid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    path = rd.GetString(0);
+                }
+                connection.Close();
+                rd.Close();
+                return path;
+            }
+        }
+
+        public static List<string> getSharedFolderUser(int sharedwith)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                List<string> Users = new List<string>();
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT Username FROM [User] INNER JOIN sharedFolder ON sharedFolder.userID = [User].userID WHERE sharedWith = '" + sharedwith + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    while (rd.Read())
+                    {
+                        Users.Add(rd.GetString(0));
+                    }
+                }
+                connection.Close();
+                rd.Close();
+                return Users;
+            }
+        }
+
+
     }
 }
+

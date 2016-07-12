@@ -83,6 +83,36 @@
         </UpdateParameters>
     </asp:SqlDataSource>
 </p>
+    <p>
+        &nbsp;</p>
+    <p>
+        <asp:GridView ID="GridView6" runat="server" AutoGenerateColumns="False" DataKeyNames="folderPath,sharedWith" DataSourceID="SqlDataSource4" EmptyDataText="There are no data records to display.">
+            <Columns>
+                <asp:BoundField DataField="folderPath" HeaderText="folderPath" ReadOnly="True" SortExpression="folderPath" />
+                <asp:BoundField DataField="sharedWith" HeaderText="sharedWith" ReadOnly="True" SortExpression="sharedWith" />
+                <asp:BoundField DataField="userID" HeaderText="userID" SortExpression="userID" />
+                <asp:BoundField DataField="folderName" HeaderText="folderName" SortExpression="folderName" />
+            </Columns>
+        </asp:GridView>
+        <asp:SqlDataSource ID="SqlDataSource4" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [sharedFolder] WHERE [folderPath] = @folderPath AND [sharedWith] = @sharedWith" InsertCommand="INSERT INTO [sharedFolder] ([folderPath], [sharedWith], [userID], [folderName]) VALUES (@folderPath, @sharedWith, @userID, @folderName)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [folderPath], [sharedWith], [userID], [folderName] FROM [sharedFolder]" UpdateCommand="UPDATE [sharedFolder] SET [userID] = @userID, [folderName] = @folderName WHERE [folderPath] = @folderPath AND [sharedWith] = @sharedWith">
+            <DeleteParameters>
+                <asp:Parameter Name="folderPath" Type="String" />
+                <asp:Parameter Name="sharedWith" Type="Int32" />
+            </DeleteParameters>
+            <InsertParameters>
+                <asp:Parameter Name="folderPath" Type="String" />
+                <asp:Parameter Name="sharedWith" Type="Int32" />
+                <asp:Parameter Name="userID" Type="Int32" />
+                <asp:Parameter Name="folderName" Type="String" />
+            </InsertParameters>
+            <UpdateParameters>
+                <asp:Parameter Name="userID" Type="Int32" />
+                <asp:Parameter Name="folderName" Type="String" />
+                <asp:Parameter Name="folderPath" Type="String" />
+                <asp:Parameter Name="sharedWith" Type="Int32" />
+            </UpdateParameters>
+        </asp:SqlDataSource>
+</p>
 <p>
     &nbsp;</p>
 </asp:Content>

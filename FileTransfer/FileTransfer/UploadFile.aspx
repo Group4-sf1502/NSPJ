@@ -102,9 +102,9 @@
             </asp:GridView>
         </asp:View>
         <asp:View ID="view2" runat="server">
-            <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view">
+            <asp:GridView ID="GridView2" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView2_SelectedIndexChanged">
                 <Columns>
-                    <asp:BoundField DataField="fileName" HeaderText="File Name" />
+                    <asp:BoundField DataField="Name" HeaderText="File Name" />
                     <asp:BoundField DataField="Username" HeaderText="Shared with you by" />
                     <asp:TemplateField>
                         <ItemTemplate>

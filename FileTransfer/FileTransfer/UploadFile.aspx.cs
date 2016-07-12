@@ -18,14 +18,20 @@ namespace Testing
     public partial class uploadFile : System.Web.UI.Page
     {
         static Stack dirs = new Stack();
+        static Stack shareddir = new Stack();
 
         protected void Page_Load(object sender, EventArgs e)
         {
             GridView1.RowStyle.Height = 30;
+            GridView2.RowStyle.Height = 30;
+            if (!IsPostBack)
+            {
+                dirs.Clear();
+                shareddir.Clear();
+            }
+            
         }
 
-        public void SaveAs(String fileName)
-        { }
 
         protected void upload(object sender, EventArgs e)
         {
@@ -80,10 +86,12 @@ namespace Testing
             dt2.Columns.Add(column);
             dt2.Columns.Add(column2);
             List<string> folders = SQL.getSharedFolderPath(userid);
-            foreach (string i in folders)
+            List<string> Usernames = SQL.getSharedFolderUser(userid);
+            for (int i = 0; i < folders.Count();i++)
             {
                 row = dt2.NewRow();
-                row["Name"] = "/" + Path.GetFileName(i) + "/";
+                row["Name"] = "/" + Path.GetFileName(folders[i]) + "/";
+                row["Username"] = Usernames[i];
                 dt2.Rows.Add(row);
             }
             
@@ -97,7 +105,7 @@ namespace Testing
             for (int i = 0; i < files.Count(); i++)
             {
                 row = dt2.NewRow();
-                row["fileName"] = files[i];
+                row["Name"] = files[i];
                 row["Username"] = usernames[i];
                 dt2.Rows.Add(row);
             }
@@ -109,18 +117,10 @@ namespace Testing
 
         }
 
-        protected void retrieveSharedUsers(int fileid)
-        {
-            DataTable dt = SQL.getSharedUsers(fileid);
-            sharedList.DataSource = dt;
-            sharedList.DataBind();
-        }
-
         protected void DownloadFile(object sender, EventArgs e)
         {
-            LinkButton lb = (LinkButton)sender;
-            GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string filename = grv.Cells[0].Text;
+
+            string filename = getname(sender);
             string filePath = getpath(sender);
 
             if (filename.Substring(0, 1).Equals("/"))
@@ -189,9 +189,7 @@ namespace Testing
         }
         protected void DeleteFile(object sender, EventArgs e)
         {
-            LinkButton lb = (LinkButton)sender;
-            GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string filename = grv.Cells[0].Text;
+            string filename = getname(sender);
             if (filename.Substring(0, 1).Equals("/"))
             {
                 string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
@@ -232,21 +230,30 @@ namespace Testing
 
         protected void showpopup(object sender, EventArgs e)
         {
-            LinkButton lb = (LinkButton)sender;
-            GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string name = grv.Cells[0].Text;
-            if (name.Substring(0,1).Equals("/"))
+            DataTable dt;
+            string name = getname(sender);
+            if (name.Substring(0, 1).Equals("/"))
             {
                 fileName.Text = name;
-                string path = dirs.Peek().ToString() + name;
-                retrieveSharedFolders(path);
+                string path = dirs.Peek().ToString() + "\\" + name.Substring(1,name.Length-2);        
+                dt = SQL.retrieveSharedFolders(path);
+                sharedList.DataSource = dt;
+                sharedList.DataBind();
+                
             }
-            /*
-            int fileid = SQL.getFileID(filepath);
-            fileName.Text = filename;
-            retrieveSharedUsers(fileid);
+            else
+            {
+                string filepath = getpath(sender);
+                int fileid = SQL.getFileID(filepath);
+                fileName.Text = name;
+                dt = SQL.getSharedUsers(fileid);
+                sharedList.DataSource = dt;
+                sharedList.DataBind();
+            }
             ModalPopupExtender2.Show();
-        */}
+        }
+        
+
 
         protected void fileshare(object sender, EventArgs e)
         {
@@ -260,16 +267,13 @@ namespace Testing
             if (filename.Substring(0, 1).Equals("/"))
             {
                 string path = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                SQL.insertShareFolder(path,userid,shareduserid);
+                SQL.insertShareFolder(path,userid,shareduserid,filename);
             }
 
             else
             {
-
-                
                 int fileid = SQL.getFileID(filename, userid);
                 SQL.insertShareFile(fileid, shareduserid, user);
-
             }
 
         }
@@ -283,8 +287,18 @@ namespace Testing
 
         protected void RemoveShare(object sender, EventArgs e)
         {
-            int fileid = SQL.getFileID(fileName.Text, SQL.getUserID(Username.Text));
-            SQL.removeSharedFile(fileid);
+            if (fileName.Text.Substring(0, 1).Equals("/"))
+            {
+                string sharedwith = getname(sender);
+                int shareduser = SQL.getUserID(sharedwith);
+                string folderpath = dirs.Peek().ToString() + "\\" + fileName.Text.Substring(1, fileName.Text.Length - 2);
+                SQL.deleteSharedFolder(folderpath, shareduser);
+            }
+            else
+            {
+                int fileid = SQL.getFileID(fileName.Text, SQL.getUserID(Username.Text));
+                SQL.removeSharedFile(fileid);
+            }
         }
 
         protected void rowdatabind(object sender, GridViewRowEventArgs e)
@@ -318,10 +332,30 @@ namespace Testing
                 }
             }
 
+            foreach (GridViewRow r in GridView2.Rows)
+            {
+                if (r.RowType == DataControlRowType.DataRow)
+                {
+                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
+                    {
+                        r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
+                        r.ToolTip = "Click to select row";
+                        r.Attributes["onclick"] = this.Page.ClientScript.GetPostBackClientHyperlink(this.GridView2, "Select$" + r.RowIndex, true);
+                    }
+
+                }
+            }
+
             base.Render(writer);
         }
 
-
+        private string getname(object sender)
+        {
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string filename = grv.Cells[0].Text;
+            return filename;
+        }
 
 
         private string getpath(object sender)
@@ -388,6 +422,145 @@ namespace Testing
                 }
             }
         }
+
+
+        protected void GridView2_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            
+            string foldername;
+            string path;
+            DataTable dt;
+            foreach (GridViewRow row in GridView2.Rows)
+            {
+                if (row.RowIndex == GridView2.SelectedIndex)
+                {
+                    if (row.Cells[0].Text.Equals(".."))
+                    {
+                        shareddir.Pop();
+                        if (shareddir.Count == 0)
+                        {
+                            int userid = SQL.getUserID(Username.Text);
+                            dt = fillMainSharedTable(userid);
+                        }
+
+                        else
+                        {
+                            path = shareddir.Peek().ToString();
+                            dt = fillSharedTable(path, row.Cells[1].Text);
+                        }
+                        
+                    }
+
+                    else
+                    {
+                        if (shareddir.Count == 0)
+                        {
+                            int userid = SQL.getUserID(row.Cells[1].Text);
+                            foldername = row.Cells[0].Text;
+                            path = SQL.getSharedFolderPath(foldername, userid);
+                            shareddir.Push(path);
+                            dt = fillSharedTable(path, row.Cells[1].Text);
+                            
+                        }
+
+                        else
+                        {
+                            path = shareddir.Peek().ToString() + "\\" + row.Cells[0].Text.ToString().Substring(1, row.Cells[0].Text.ToString().Length - 2);
+                            shareddir.Push(path);
+                            dt = fillSharedTable(path, row.Cells[1].Text);
+                            
+                        }
+                    }
+                    
+                    GridView2.DataSource = null;
+                    GridView2.DataBind();
+                    
+                    GridView2.DataSource = dt;
+                    GridView2.DataBind();
+                }
+            }
+            
+        }
+
+        protected DataTable fillMainSharedTable(int userid)
+        {
+            DataTable dt2 = new DataTable();
+            DataRow row;
+            DataColumn column = new DataColumn("Name");
+            column.DataType = Type.GetType("System.String");
+            DataColumn column2 = new DataColumn("Username");
+            column2.DataType = Type.GetType("System.String");
+            dt2.Columns.Add(column);
+            dt2.Columns.Add(column2);
+            List<string> folders = SQL.getSharedFolderPath(userid);
+            List<string> Usernames = SQL.getSharedFolderUser(userid);
+            for (int i = 0; i < folders.Count(); i++)
+            {
+                row = dt2.NewRow();
+                row["Name"] = "/" + Path.GetFileName(folders[i]) + "/";
+                row["Username"] = Usernames[i];
+                dt2.Rows.Add(row);
+            }
+
+
+            // Files
+            List<int> fileids = SQL.getShareFileID(userid);
+
+            List<String> files = SQL.getSharedDataTable(fileids);
+            List<String> usernames = SQL.getShareUser(userid);
+
+            for (int i = 0; i < files.Count(); i++)
+            {
+                row = dt2.NewRow();
+                row["Name"] = files[i];
+                row["Username"] = usernames[i];
+                dt2.Rows.Add(row);
+            }
+
+
+            return dt2;
+        }
+        
+        protected DataTable fillSharedTable(string path,string username)
+        {
+            string back = "..";
+            DataTable dt = new DataTable();
+            List<string> dir = new List<string>(Directory.EnumerateDirectories(path));
+            string[] files = Directory.GetFiles(path);
+            DataRow row;
+            DataColumn column = new DataColumn("Name");
+            column.DataType = Type.GetType("System.String");
+            DataColumn column2 = new DataColumn("Username");
+            column2.DataType = Type.GetType("System.String");
+            dt.Columns.Add(column);
+            dt.Columns.Add(column2);
+
+            row = dt.NewRow();
+            row["Name"] = back;
+            dt.Rows.Add(row);
+
+            for (int i = 0; i < dir.Count; i++)
+            {
+                row = dt.NewRow();
+                row["Name"] = "/" + Path.GetFileName(dir[i]) + "/";
+                row["Username"] = username;
+                dt.Rows.Add(row);
+            }
+
+            for (int i = 0; i < files.Length; i++)
+            {
+                row = dt.NewRow();
+                row["Name"] = Path.GetFileName(files[i]);
+                row["Username"] = username;
+                dt.Rows.Add(row);
+            }
+
+            return dt;
+        }
+        
+
+
+
 
         protected DataTable fillTable(string path)
         {
@@ -584,5 +757,7 @@ namespace Testing
             string path = dirs.Peek().ToString() + "\\" + folder;
             Directory.CreateDirectory(path);
         }
+
+        
     }
 }
