@@ -131,19 +131,21 @@ namespace Testing
                 string zip = Server.MapPath("~/temp/") + filename.Substring(1,filename.Length-2) + ".zip";
 
                 Directory.CreateDirectory(mainfolder);
-                
+                Directory.CreateDirectory(dest);
+               
                 
                 foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 {
                     Directory.CreateDirectory(dest + dir.Substring(source.Length));
                 }
+                
                 List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
                 foreach (string file_name in filepaths)
                 {
                     File.Copy(file_name, dest + file_name.Substring(source.Length));
                     Security.DecryptFile(dest+file_name.Substring(source.Length),dest+ file_name.Substring(source.Length));
                 }
-
+                
                 ZipFile.CreateFromDirectory(mainfolder, zip);
                 Response.ClearContent();
                 Response.ContentType = ContentType;
