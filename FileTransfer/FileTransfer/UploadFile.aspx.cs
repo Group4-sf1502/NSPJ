@@ -396,7 +396,7 @@ namespace Testing
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if ((r.Cells[1].Text.Substring(0, 1).Equals(condition)) || (r.Cells[1].Text.Substring(0, 2).Equals(condition2)))
+                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
                     {
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
@@ -410,7 +410,7 @@ namespace Testing
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if ((r.Cells[1].Text.Substring(0, 1).Equals(condition)) || (r.Cells[1].Text.Substring(0, 2).Equals(condition2)))
+                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
                     {
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
@@ -831,32 +831,35 @@ namespace Testing
             string path = dirs.Peek().ToString() + "\\" + folder;
             Directory.CreateDirectory(path);
         }
-
+        /*
         private string changedirection(SortDirection e)
         {
             string newdirection = "";
             switch (e)
             {
                 case SortDirection.Ascending: newdirection = "DESC";break;
-                case SortDirection.Descending: newdirection = "AES";break;
+                case SortDirection.Descending: newdirection = "ASC";break;
             }
             return newdirection;
         }
 
         protected void sortview(object sender, GridViewSortEventArgs e)
         {
+            Response.Write("Sort expression: " + e.SortExpression);
+            Response.Write("Sort direction: " + e.SortDirection);
+
             DataTable dt = GridView1.DataSource as DataTable;
 
             if (dt != null)
             {
                 DataView dv = new DataView(dt);
-                dv.Sort = e.SortExpression + " " + changedirection(e.SortDirection);
+                dv.Sort = e.SortExpression + " " + "DESC";
 
                 GridView1.DataSource = dv;
                 GridView1.DataBind();
             }
-        }
-
+        } 
+        */
 
     }
 }

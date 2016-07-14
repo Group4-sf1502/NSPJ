@@ -75,17 +75,18 @@
                             <asp:Image id="fileimages" ImageUrl="C:\Users\daryl\Desktop\folder.png" runat="server"/>
                         </ItemTemplate>
                     </asp:TemplateField> -->
-    <asp:MultiView ID="MultiView" runat="server">
-        <asp:View ID="View1" runat="server">
-            <asp:GridView ID="GridView1" OnSorting="sortview" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
-                <Columns>
-                    <asp:TemplateField>
+<!-- <asp:TemplateField>
                         <HeaderTemplate>
                             <asp:CheckBox runat="server" id="checkboxes"/>
                         </HeaderTemplate>
-                    </asp:TemplateField>
-                    <asp:BoundField DataField="Name" HeaderText="File Name" SortExpression="sortview" />
-                    <asp:BoundField DataField="Last Modified" HeaderText="Last Modified" />
+                    </asp:TemplateField> -->
+
+    <asp:MultiView ID="MultiView" runat="server">
+        <asp:View ID="View1" runat="server">
+            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
+                <Columns>
+                    <asp:BoundField DataField="Name" HeaderText="File Name"  />
+                    <asp:BoundField DataField="Last Modified" HeaderText="Last Modified"  />
                     <asp:TemplateField>
                         <ItemTemplate>
                             <asp:LinkButton ID="lnkDownload" Text="Download" CssClass="button" runat="server" OnClick="DownloadFile"></asp:LinkButton></ItemTemplate>
