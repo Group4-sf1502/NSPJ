@@ -29,30 +29,28 @@ namespace Testing
                 dirs.Clear();
                 shareddir.Clear();
             }
-            
-        }
 
+        }
 
         protected void upload(object sender, EventArgs e)
         {
 
-            if (!System.IO.Directory.Exists(Server.MapPath("~/App_Data/") + Username.Text))
+            HttpFileCollection uploadedFiles = Request.Files;
+            for (int i = 0; i < uploadedFiles.Count; i++)
             {
-                System.IO.Directory.CreateDirectory(Server.MapPath("~/App_Data/") + Username.Text);
+                HttpPostedFile userPostedFile = uploadedFiles[i];
+
+                if (userPostedFile.ContentLength > 0)
+                {
+                    int userid = SQL.getUserID(Username.Text);
+                    string fileName = Path.GetFileName(userPostedFile.FileName);
+                    string path = dirs.Peek().ToString() + "\\" + fileName;
+                    FileUpload1.PostedFile.SaveAs(path);
+                    Security.EncryptFile(path, path);
+                    SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid);
+                }
+
             }
-
-            int userid = SQL.getUserID(Username.Text);
-            string fileName = Path.GetFileName(FileUpload1.PostedFile.FileName);
-            string path = dirs.Peek().ToString() + "\\" + fileName;
-
-            FileUpload1.PostedFile.SaveAs(path);
-            Security.EncryptFile(path, path);
-            //Response.Redirect(Request.Url.AbsoluteUri);
-            Label1.Visible = true;
-            Label1.Text = "File successfully uploaded!";
-
-
-            SQL.insertFile(fileName, FileUpload1.PostedFile.ContentLength, path, userid);
 
 
 
@@ -61,6 +59,7 @@ namespace Testing
 
         protected void retrieve(object sender, EventArgs e)
         {
+
             int userid = SQL.getUserID(Username.Text);
 
             //My files
@@ -87,18 +86,18 @@ namespace Testing
             dt2.Columns.Add(column2);
             List<string> folders = SQL.getSharedFolderPath(userid);
             List<string> Usernames = SQL.getSharedFolderUser(userid);
-            for (int i = 0; i < folders.Count();i++)
+            for (int i = 0; i < folders.Count(); i++)
             {
                 row = dt2.NewRow();
                 row["Name"] = "/" + Path.GetFileName(folders[i]) + "/";
                 row["Username"] = Usernames[i];
                 dt2.Rows.Add(row);
             }
-            
+
 
             // Files
             List<int> fileids = SQL.getShareFileID(userid);
-            
+
             List<String> files = SQL.getSharedDataTable(fileids);
             List<String> usernames = SQL.getShareUser(userid);
 
@@ -125,37 +124,37 @@ namespace Testing
 
             if (filename.Substring(0, 1).Equals("/"))
             {
-                string source = dirs.Peek().ToString() + "\\" + filename.Substring(1,filename.Length-2);
+                string source = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
                 string mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
-                string dest = mainfolder + "\\" + filename.Substring(1,filename.Length-2);
-                string zip = Server.MapPath("~/temp/") + filename.Substring(1,filename.Length-2) + ".zip";
+                string dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
+                string zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
 
                 Directory.CreateDirectory(mainfolder);
                 Directory.CreateDirectory(dest);
-               
-                
+
+
                 foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                 {
                     Directory.CreateDirectory(dest + dir.Substring(source.Length));
                 }
-                
+
                 List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
                 foreach (string file_name in filepaths)
                 {
                     File.Copy(file_name, dest + file_name.Substring(source.Length));
-                    Security.DecryptFile(dest+file_name.Substring(source.Length),dest+ file_name.Substring(source.Length));
+                    Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
                 }
-                
+
                 ZipFile.CreateFromDirectory(mainfolder, zip);
                 Response.ClearContent();
                 Response.ContentType = ContentType;
                 Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(zip));
                 Response.TransmitFile(zip);
                 Response.Flush();
-                Directory.Delete(mainfolder,true);
+                Directory.Delete(mainfolder, true);
                 File.Delete(zip);
                 Response.End();
-            
+
             }
             else
             {
@@ -167,26 +166,99 @@ namespace Testing
                 Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
                 Response.TransmitFile(tempPath);
                 Response.Flush();
-                File.Delete(tempPath);
                 Response.End();
             }
-            
+
         }
 
         protected void DownloadSharedFile(object sender, EventArgs e)
         {
-            string filePath = getsharedpath(sender);
-            string filename = Path.GetFileName(filePath);
-            string tempPath = Server.MapPath("~/temp/") + filename;
-            File.Copy(filePath, tempPath);
-            Security.DecryptFile(tempPath, tempPath);
-            Response.ClearContent();
-            Response.ContentType = ContentType;
-            Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
-            Response.TransmitFile(tempPath);
-            Response.Flush();
-            File.Delete(tempPath);
-            Response.End();
+            string filename = getname(sender);
+            string mainfolder;
+            string source;
+            string dest;
+            string zip;
+            if (filename.Substring(0, 1).Equals("/"))
+            {
+                if (shareddir.Count == 0)
+                {
+                    LinkButton lb = (LinkButton)sender;
+                    GridViewRow grv = (GridViewRow)lb.NamingContainer;
+                    string user = grv.Cells[1].Text;
+                    source = SQL.getSharedFolderPath(filename, SQL.getUserID(user));
+                    mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
+                    dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
+                    zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
+                    Directory.CreateDirectory(mainfolder);
+                    Directory.CreateDirectory(dest);
+
+
+                    foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+                    {
+                        Directory.CreateDirectory(dest + dir.Substring(source.Length));
+                    }
+
+                    List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
+                    foreach (string file_name in filepaths)
+                    {
+                        File.Copy(file_name, dest + file_name.Substring(source.Length));
+                        Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                    }
+                }
+
+                else
+                {
+                    source = shareddir.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                    mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
+                    dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
+                    zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
+
+                    Directory.CreateDirectory(mainfolder);
+                    Directory.CreateDirectory(dest);
+
+
+                    foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+                    {
+                        Directory.CreateDirectory(dest + dir.Substring(source.Length));
+                    }
+
+                    List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
+                    foreach (string file_name in filepaths)
+                    {
+                        File.Copy(file_name, dest + file_name.Substring(source.Length));
+                        Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                    }
+                }
+
+
+                ZipFile.CreateFromDirectory(mainfolder, zip);
+                Response.ClearContent();
+                Response.ContentType = ContentType;
+                Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(zip));
+                Response.TransmitFile(zip);
+                Response.Flush();
+                Directory.Delete(mainfolder, true);
+                File.Delete(zip);
+                Response.End();
+
+            }
+
+            else
+            {
+                string filePath = getpath(sender);
+                string tempPath = Server.MapPath("~/temp/") + filename;
+                File.Copy(filePath, tempPath);
+                Security.DecryptFile(tempPath, tempPath);
+                Response.ClearContent();
+                Response.ContentType = ContentType;
+                Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
+                Response.TransmitFile(tempPath);
+                Response.Flush();
+                File.Delete(tempPath);
+                Response.End();
+            }
+
+
 
         }
         protected void DeleteFile(object sender, EventArgs e)
@@ -237,11 +309,11 @@ namespace Testing
             if (name.Substring(0, 1).Equals("/"))
             {
                 fileName.Text = name;
-                string path = dirs.Peek().ToString() + "\\" + name.Substring(1,name.Length-2);        
+                string path = dirs.Peek().ToString() + "\\" + name.Substring(1, name.Length - 2);
                 dt = SQL.retrieveSharedFolders(path);
                 sharedList.DataSource = dt;
                 sharedList.DataBind();
-                
+
             }
             else
             {
@@ -254,7 +326,7 @@ namespace Testing
             }
             ModalPopupExtender2.Show();
         }
-        
+
 
 
         protected void fileshare(object sender, EventArgs e)
@@ -269,7 +341,7 @@ namespace Testing
             if (filename.Substring(0, 1).Equals("/"))
             {
                 string path = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                SQL.insertShareFolder(path,userid,shareduserid,filename);
+                SQL.insertShareFolder(path, userid, shareduserid, filename);
             }
 
             else
@@ -324,7 +396,7 @@ namespace Testing
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
+                    if ((r.Cells[1].Text.Substring(0, 1).Equals(condition)) || (r.Cells[1].Text.Substring(0, 2).Equals(condition2)))
                     {
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
@@ -338,7 +410,7 @@ namespace Testing
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
+                    if ((r.Cells[1].Text.Substring(0, 1).Equals(condition)) || (r.Cells[1].Text.Substring(0, 2).Equals(condition2)))
                     {
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
@@ -428,7 +500,7 @@ namespace Testing
 
         protected void GridView2_SelectedIndexChanged(object sender, EventArgs e)
         {
-            
+
             string foldername;
             string path;
             DataTable dt;
@@ -450,7 +522,7 @@ namespace Testing
                             path = shareddir.Peek().ToString();
                             dt = fillSharedTable(path, row.Cells[1].Text);
                         }
-                        
+
                     }
 
                     else
@@ -462,7 +534,7 @@ namespace Testing
                             path = SQL.getSharedFolderPath(foldername, userid);
                             shareddir.Push(path);
                             dt = fillSharedTable(path, row.Cells[1].Text);
-                            
+
                         }
 
                         else
@@ -470,18 +542,18 @@ namespace Testing
                             path = shareddir.Peek().ToString() + "\\" + row.Cells[0].Text.ToString().Substring(1, row.Cells[0].Text.ToString().Length - 2);
                             shareddir.Push(path);
                             dt = fillSharedTable(path, row.Cells[1].Text);
-                            
+
                         }
                     }
-                    
+
                     GridView2.DataSource = null;
                     GridView2.DataBind();
-                    
+
                     GridView2.DataSource = dt;
                     GridView2.DataBind();
                 }
             }
-            
+
         }
 
         protected DataTable fillMainSharedTable(int userid)
@@ -522,8 +594,8 @@ namespace Testing
 
             return dt2;
         }
-        
-        protected DataTable fillSharedTable(string path,string username)
+
+        protected DataTable fillSharedTable(string path, string username)
         {
             string back = "..";
             DataTable dt = new DataTable();
@@ -559,7 +631,7 @@ namespace Testing
 
             return dt;
         }
-        
+
 
 
 
@@ -760,6 +832,31 @@ namespace Testing
             Directory.CreateDirectory(path);
         }
 
-        
+        private string changedirection(SortDirection e)
+        {
+            string newdirection = "";
+            switch (e)
+            {
+                case SortDirection.Ascending: newdirection = "DESC";break;
+                case SortDirection.Descending: newdirection = "AES";break;
+            }
+            return newdirection;
+        }
+
+        protected void sortview(object sender, GridViewSortEventArgs e)
+        {
+            DataTable dt = GridView1.DataSource as DataTable;
+
+            if (dt != null)
+            {
+                DataView dv = new DataView(dt);
+                dv.Sort = e.SortExpression + " " + changedirection(e.SortDirection);
+
+                GridView1.DataSource = dv;
+                GridView1.DataBind();
+            }
+        }
+
+
     }
 }

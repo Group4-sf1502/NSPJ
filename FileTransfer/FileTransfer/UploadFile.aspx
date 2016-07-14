@@ -48,7 +48,7 @@
         &nbsp;<asp:TextBox ID="Username" runat="server"></asp:TextBox>
     </p>
     <p>
-        <asp:FileUpload ID="FileUpload1" runat="server" />
+        <asp:FileUpload ID="FileUpload1" runat="server" AllowMultiple="True" />
     </p>
     <p>
         <asp:Button ID="Button1" runat="server" OnClick="upload" Text="Upload" />
@@ -60,12 +60,8 @@
 
 
     <p>
-        <asp:Label ID="Label1" runat="server" Text="Label" Visible="False"></asp:Label>
 
-        &nbsp;&nbsp;
-        <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="85px" />
-
-        <asp:TextBox ID="TextBox1" runat="server" TextMode="MultiLine" Height="200px"></asp:TextBox>
+        &nbsp;<asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="85px" />
 
     </p>
 
@@ -74,12 +70,21 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      <asp:Button ID="Button4" runat="server" OnClick="ViewSharedFiles" Text="Files shared with me" />
     </p>
-
+<!-- <asp:TemplateField>
+                        <ItemTemplate>
+                            <asp:Image id="fileimages" ImageUrl="C:\Users\daryl\Desktop\folder.png" runat="server"/>
+                        </ItemTemplate>
+                    </asp:TemplateField> -->
     <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
-            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged">
+            <asp:GridView ID="GridView1" OnSorting="sortview" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
                 <Columns>
-                    <asp:BoundField DataField="Name" HeaderText="File Name" />
+                    <asp:TemplateField>
+                        <HeaderTemplate>
+                            <asp:CheckBox runat="server" id="checkboxes"/>
+                        </HeaderTemplate>
+                    </asp:TemplateField>
+                    <asp:BoundField DataField="Name" HeaderText="File Name" SortExpression="sortview" />
                     <asp:BoundField DataField="Last Modified" HeaderText="Last Modified" />
                     <asp:TemplateField>
                         <ItemTemplate>
@@ -120,7 +125,7 @@
     </asp:MultiView>
 
     <asp:Button ID="show" Text="Popup" runat="server" OnClick="showpopup" Style="display: none" />
-    <asp:Panel ID="panel1" runat="server" Style="display: none" CssClass="popup" Height="300px">
+    <asp:Panel ID="panel1" runat="server" CssClass="popup" Height="300px" >
         <br />
         <asp:Label runat="server" ID="fileName"></asp:Label>
         <br />
