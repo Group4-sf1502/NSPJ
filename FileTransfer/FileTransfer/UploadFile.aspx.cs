@@ -12,6 +12,7 @@ using System.Data.SqlClient;
 using FileTransfer;
 using System.Data;
 using System.IO.Compression;
+using nClam;
 
 namespace Testing
 {
@@ -34,139 +35,175 @@ namespace Testing
 
         protected void upload(object sender, EventArgs e)
         {
-
-            HttpFileCollection uploadedFiles = Request.Files;
-            for (int i = 0; i < uploadedFiles.Count; i++)
-            {
-                HttpPostedFile userPostedFile = uploadedFiles[i];
-
-                if (userPostedFile.ContentLength > 0)
+            try {
+                var clam = new ClamClient("localhost", 3310);
+                HttpFileCollection uploadedFiles = Request.Files;
+                for (int i = 0; i < uploadedFiles.Count; i++)
                 {
-                    int userid = SQL.getUserID(Username.Text);
-                    string fileName = Path.GetFileName(userPostedFile.FileName);
-                    string path = dirs.Peek().ToString() + "\\" + fileName;
-                    FileUpload1.PostedFile.SaveAs(path);
-                    Security.EncryptFile(path, path);
-                    SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid);
-                }
+                    HttpPostedFile userPostedFile = uploadedFiles[i];
 
+                    if (userPostedFile.ContentLength > 0)
+                    {
+                        int userid = SQL.getUserID(Username.Text);
+                        string fileName = Path.GetFileName(userPostedFile.FileName);
+                        string path = dirs.Peek().ToString() + "\\" + fileName;
+                        FileUpload1.PostedFile.SaveAs(path);
+                        var scanResult = clam.ScanFileOnServer(path);
+                        if (scanResult.Result == ClamScanResults.Clean)
+                        {
+                            Security.EncryptFile(path, path);
+                            SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid);
+                        }
+                        else
+                        {
+                            File.Delete(path);
+                            Response.Write(fileName + " is malicious!");
+                        }
+                    }
+                }
+            }
+            catch (InvalidOperationException exc)
+            {
+                Response.Write("An error has occured");
             }
 
-
-
-        }
+            }       
 
 
         protected void retrieve(object sender, EventArgs e)
         {
-
-            int userid = SQL.getUserID(Username.Text);
-
-            //My files
-
-            string user = Server.MapPath("~/App_Data/") + Username.Text;
-            dirs.Push(user);
-            DataTable dt = fillMainTable(user);
-            GridView1.DataSource = dt;
-            GridView1.DataBind();
-            MultiView.ActiveViewIndex = 0;
-
-
-
-
-
-            // Folders shared with me
-            DataTable dt2 = new DataTable();
-            DataRow row;
-            DataColumn column = new DataColumn("Name");
-            column.DataType = Type.GetType("System.String");
-            DataColumn column2 = new DataColumn("Username");
-            column2.DataType = Type.GetType("System.String");
-            dt2.Columns.Add(column);
-            dt2.Columns.Add(column2);
-            List<string> folders = SQL.getSharedFolderPath(userid);
-            List<string> Usernames = SQL.getSharedFolderUser(userid);
-            for (int i = 0; i < folders.Count(); i++)
+            try
             {
-                row = dt2.NewRow();
-                row["Name"] = "/" + Path.GetFileName(folders[i]) + "/";
-                row["Username"] = Usernames[i];
-                dt2.Rows.Add(row);
+                int userid = SQL.getUserID(Username.Text);
+
+                //My files
+
+                string user = Server.MapPath("~/App_Data/") + Username.Text;
+                dirs.Push(user);
+                DataTable dt = fillMainTable(user);
+                GridView1.DataSource = dt;
+                GridView1.DataBind();
+                MultiView.ActiveViewIndex = 0;
+
+
+
+
+
+                // Folders shared with me
+                DataTable dt2 = new DataTable();
+                DataRow row;
+                DataColumn column = new DataColumn("Name");
+                column.DataType = Type.GetType("System.String");
+                DataColumn column2 = new DataColumn("Username");
+                column2.DataType = Type.GetType("System.String");
+                dt2.Columns.Add(column);
+                dt2.Columns.Add(column2);
+                List<string> folders = SQL.getSharedFolderPath(userid);
+                List<string> Usernames = SQL.getSharedFolderUser(userid);
+                for (int i = 0; i < folders.Count(); i++)
+                {
+                    row = dt2.NewRow();
+                    row["Name"] = "/" + Path.GetFileName(folders[i]) + "/";
+                    row["Username"] = Usernames[i];
+                    dt2.Rows.Add(row);
+                }
+
+
+                // Files
+                List<int> fileids = SQL.getShareFileID(userid);
+
+                List<String> files = SQL.getSharedDataTable(fileids);
+                List<String> usernames = SQL.getShareUser(userid);
+
+                for (int i = 0; i < files.Count(); i++)
+                {
+                    row = dt2.NewRow();
+                    row["Name"] = files[i];
+                    row["Username"] = usernames[i];
+                    dt2.Rows.Add(row);
+                }
+
+
+                GridView2.DataSource = dt2;
+                GridView2.DataBind();
             }
-
-
-            // Files
-            List<int> fileids = SQL.getShareFileID(userid);
-
-            List<String> files = SQL.getSharedDataTable(fileids);
-            List<String> usernames = SQL.getShareUser(userid);
-
-            for (int i = 0; i < files.Count(); i++)
+            catch (FileNotFoundException exc)
             {
-                row = dt2.NewRow();
-                row["Name"] = files[i];
-                row["Username"] = usernames[i];
-                dt2.Rows.Add(row);
+                Response.Write("File not found!");
             }
-
-
-            GridView2.DataSource = dt2;
-            GridView2.DataBind();
-
+            catch (DirectoryNotFoundException exc2)
+            {
+                Response.Write("Folder not found");
+            }
 
         }
 
         protected void DownloadFile(object sender, EventArgs e)
         {
-
-            string filename = getname(sender);
-            string filePath = getpath(sender);
-
-            if (filename.Substring(0, 1).Equals("/"))
+            try
             {
-                string source = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                string mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
-                string dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
-                string zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
+                string filename = getname(sender);
+                string filePath = getpath(sender);
 
-                Directory.CreateDirectory(mainfolder);
-                Directory.CreateDirectory(dest);
-
-
-                foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+                if (filename.Substring(0, 1).Equals("/"))
                 {
-                    Directory.CreateDirectory(dest + dir.Substring(source.Length));
-                }
+                    string source = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                    string mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
+                    string dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
+                    string zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
 
-                List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
-                foreach (string file_name in filepaths)
+                    Directory.CreateDirectory(mainfolder);
+                    Directory.CreateDirectory(dest);
+
+
+                    foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
+                    {
+                        Directory.CreateDirectory(dest + dir.Substring(source.Length));
+                    }
+
+                    List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
+                    foreach (string file_name in filepaths)
+                    {
+                        File.Copy(file_name, dest + file_name.Substring(source.Length));
+                        Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                    }
+
+                    ZipFile.CreateFromDirectory(mainfolder, zip);
+                    Response.ClearContent();
+                    Response.ContentType = ContentType;
+                    Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(zip));
+                    Response.TransmitFile(zip);
+                    Response.Flush();
+                    Directory.Delete(mainfolder, true);
+                    File.Delete(zip);
+                    Response.End();
+
+                }
+                else
                 {
-                    File.Copy(file_name, dest + file_name.Substring(source.Length));
-                    Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                    string tempPath = Server.MapPath("~/temp/") + filename;
+                    File.Copy(filePath, tempPath);
+                    Security.DecryptFile(tempPath, tempPath);
+                    Response.ClearContent();
+                    Response.ContentType = ContentType;
+                    Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
+                    Response.TransmitFile(tempPath);
+                    Response.Flush();
+                    File.Delete(tempPath);
+                    Response.End();
                 }
-
-                ZipFile.CreateFromDirectory(mainfolder, zip);
-                Response.ClearContent();
-                Response.ContentType = ContentType;
-                Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(zip));
-                Response.TransmitFile(zip);
-                Response.Flush();
-                Directory.Delete(mainfolder, true);
-                File.Delete(zip);
-                Response.End();
-
             }
-            else
+            catch (FileNotFoundException exc)
             {
-                string tempPath = Server.MapPath("~/temp/") + filename;
-                File.Copy(filePath, tempPath);
-                Security.DecryptFile(tempPath, tempPath);
-                Response.ClearContent();
-                Response.ContentType = ContentType;
-                Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
-                Response.TransmitFile(tempPath);
-                Response.Flush();
-                Response.End();
+                Response.Write("File not found");
+            }
+            catch (InvalidOperationException exc2)
+            {
+                Response.Write("An error has occured");
+            }
+            catch (DirectoryNotFoundException exc3)
+            {
+                Response.Write("Folder not found");
             }
 
         }
@@ -245,7 +282,9 @@ namespace Testing
 
             else
             {
-                string filePath = getpath(sender);
+                string fileName = getname(sender);
+                string filePath = getsharedpath(sender);
+                
                 string tempPath = Server.MapPath("~/temp/") + filename;
                 File.Copy(filePath, tempPath);
                 Security.DecryptFile(tempPath, tempPath);
@@ -256,6 +295,7 @@ namespace Testing
                 Response.Flush();
                 File.Delete(tempPath);
                 Response.End();
+
             }
 
 
@@ -263,23 +303,48 @@ namespace Testing
         }
         protected void DeleteFile(object sender, EventArgs e)
         {
-            string filename = getname(sender);
-            if (filename.Substring(0, 1).Equals("/"))
+            try
             {
-                string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                List<string> files = new List<string>(Directory.GetFiles(foldername, "*", SearchOption.AllDirectories));
-                SQL.deleteFiles(files, SQL.getUserID(Username.Text));
-                foreach (string i in files)
+                string filename = getname(sender);
+                if (filename.Substring(0, 1).Equals("/"))
                 {
-                    File.Delete(i);
+                    string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                    List<string> files = new List<string>(Directory.GetFiles(foldername, "*", SearchOption.AllDirectories));
+                    SQL.deleteFiles(files, SQL.getUserID(Username.Text));
+                    foreach (string i in files)
+                    {
+                        File.Delete(i);
+                    }
+                    Directory.Delete(foldername);
                 }
-                Directory.Delete(foldername);
+                else
+                {
+                    string filePath = getpath(sender);
+                    File.Delete(filePath);
+                    SQL.deleteFile(filePath);
+                }
+                DataTable dt = new DataTable();
+                if (dirs.Count == 1)
+                { 
+                    dt = fillMainTable(dirs.Peek().ToString());
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
+                else
+                {
+                    dt = fillTable(dirs.Peek().ToString());
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
             }
-            else
+            catch (FileNotFoundException exc)
             {
-                string filePath = getpath(sender);
-                File.Delete(filePath);
-                SQL.deleteFile(filePath);
+                Response.Write("File not found");
+            }
+
+            catch (DirectoryNotFoundException exc2)
+            {
+                Response.Write("Folder not found");
             }
 
         }
@@ -832,34 +897,54 @@ namespace Testing
             Directory.CreateDirectory(path);
         }
         /*
-        private string changedirection(SortDirection e)
+        protected void Button8_Click(object sender, EventArgs e)
         {
-            string newdirection = "";
-            switch (e)
+            TextBox1.Text += "Helo";
+            var clam = new ClamClient("localhost", 3310);
+            var scanResult = clam.ScanFileOnServer(@"C:\Users\daryl\Desktop\z.com");
+            
+            switch (scanResult.Result)
             {
-                case SortDirection.Ascending: newdirection = "DESC";break;
-                case SortDirection.Descending: newdirection = "ASC";break;
+                case ClamScanResults.Clean:
+                    Response.Write("The file is clean!");
+                    break;
+                case ClamScanResults.VirusDetected:
+                   Response.Write("Virus Found!");
+                    break;
+                case ClamScanResults.Error:
+                    Response.Write("Error occurred");
+                    break;
             }
-            return newdirection;
-        }
-
-        protected void sortview(object sender, GridViewSortEventArgs e)
-        {
-            Response.Write("Sort expression: " + e.SortExpression);
-            Response.Write("Sort direction: " + e.SortDirection);
-
-            DataTable dt = GridView1.DataSource as DataTable;
-
-            if (dt != null)
-            {
-                DataView dv = new DataView(dt);
-                dv.Sort = e.SortExpression + " " + "DESC";
-
-                GridView1.DataSource = dv;
-                GridView1.DataBind();
-            }
-        } 
-        */
-
+        }*/
+            /*
+    private string changedirection(SortDirection e)
+    {
+       string newdirection = "";
+       switch (e)
+       {
+           case SortDirection.Ascending: newdirection = "DESC";break;
+           case SortDirection.Descending: newdirection = "ASC";break;
+       }
+       return newdirection;
     }
-}
+
+    protected void sortview(object sender, GridViewSortEventArgs e)
+    {
+       Response.Write("Sort expression: " + e.SortExpression);
+       Response.Write("Sort direction: " + e.SortDirection);
+
+       DataTable dt = GridView1.DataSource as DataTable;
+
+       if (dt != null)
+       {
+           DataView dv = new DataView(dt);
+           dv.Sort = e.SortExpression + " " + "DESC";
+
+           GridView1.DataSource = dv;
+           GridView1.DataBind();
+       }
+    } 
+    */
+
+        }
+    }
