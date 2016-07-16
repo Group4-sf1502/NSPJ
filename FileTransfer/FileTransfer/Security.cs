@@ -1,4 +1,4 @@
-﻿ using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,6 +10,10 @@ namespace FileTransfer
 {
     class Security
     {
+
+        //AES
+
+
         public static byte[] AES_Encrypt(byte[] bytesToBeEncrypted, byte[] passwordBytes)
         {
             byte[] encryptedBytes = null;
@@ -109,21 +113,161 @@ namespace FileTransfer
             File.WriteAllBytes(decrypted, bytesDecrypted);
         }
 
-        public static string Hash(string input)
+
+        //RSA
+
+        public static string EncryptKey(string key)
         {
-            using (SHA1Managed sha1 = new SHA1Managed())
+            CspParameters cp = new CspParameters();
+            cp.KeyContainerName = "RSAKeys";
+
+            UnicodeEncoding ByteConverter = new UnicodeEncoding();
+
+            byte[] keybyte = Encoding.Unicode.GetBytes(key);
+            string encryptedkey;
+
+            using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
             {
-                var hash = sha1.ComputeHash(Encoding.UTF8.GetBytes(input));
-                var sb = new StringBuilder(hash.Length * 2);
-
-                foreach (byte b in hash)
-                {
-                    // can be "x2" if you want lowercase
-                    sb.Append(b.ToString("X2"));
-                }
-
-                return sb.ToString();
+                encryptedkey = Convert.ToBase64String(RSA.Encrypt(keybyte,false));
             }
+
+            return encryptedkey;
         }
+
+
+        public static string DecryptKey(string key)
+        {
+            CspParameters cp = new CspParameters();
+            cp.KeyContainerName = "RSAKeys";
+
+            UnicodeEncoding ByteConverter = new UnicodeEncoding();
+
+            byte[] keybyte = Convert.FromBase64String(key);
+            string decryptedkey;
+            
+            using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
+            {
+                decryptedkey = Encoding.Unicode.GetString(RSA.Decrypt(keybyte, false));
+            }
+            return decryptedkey;
+        }
+
     }
 }
+
+
+
+
+/*
+ * using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Security.Cryptography;
+using System.ComponentModel;
+using System.IO;
+
+namespace AsymmetricTest
+{
+class Program
+{
+static void Main(string[] args)
+{
+    // creates the CspParameters object and sets the key container name used to store the RSA key pair
+    CspParameters cp = new CspParameters();
+    cp.KeyContainerName = "RSAKeys";
+
+    UnicodeEncoding ByteConverter = new UnicodeEncoding();
+
+    //Create byte arrays to hold original, encrypted, and decrypted data.
+    byte[] dataToEncrypt = ByteConverter.GetBytes("Data to Encrypt");
+    byte[] encryptedData;
+    byte[] decryptedData;
+
+
+    using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
+    {
+
+        //Pass the data to ENCRYPT, the public key information 
+        //(using RSACryptoServiceProvider.ExportParameters(false),
+        //and a boolean flag specifying no OAEP padding.
+        encryptedData = RSAEncrypt(dataToEncrypt, RSA.ExportParameters(false), false);
+
+        Console.WriteLine("Encrypted plaintext: {0}", ByteConverter.GetString(encryptedData));
+        Console.WriteLine("\n\n");
+        //Pass the data to DECRYPT, the private key information 
+        //(using RSACryptoServiceProvider.ExportParameters(true),
+        //and a boolean flag specifying no OAEP padding.
+        decryptedData = RSADecrypt(encryptedData, RSA.ExportParameters(true), false);
+        Console.WriteLine("Decrypted plaintext: {0}", ByteConverter.GetString(decryptedData));
+
+
+    }
+}
+
+static public byte[] RSAEncrypt(byte[] DataToEncrypt, RSAParameters RSAKeyInfo, bool DoOAEPPadding)
+{
+    try
+    {
+        byte[] encryptedData;
+        //Create a new instance of RSACryptoServiceProvider.
+        using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider())
+        {
+
+            //Import the RSA Key information. This only needs
+            //toinclude the public key information.
+            RSA.ImportParameters(RSAKeyInfo);
+
+            //Encrypt the passed byte array and specify OAEP padding.  
+            //OAEP padding is only available on Microsoft Windows XP or
+            //later.  
+            encryptedData = RSA.Encrypt(DataToEncrypt, DoOAEPPadding);
+        }
+        return encryptedData;
+    }
+    //Catch and display a CryptographicException  
+    //to the console.
+    catch (CryptographicException e)
+    {
+        Console.WriteLine(e.Message);
+
+        return null;
+    }
+
+}
+
+static public byte[] RSADecrypt(byte[] DataToDecrypt, RSAParameters RSAKeyInfo, bool DoOAEPPadding)
+{
+    try
+    {
+        byte[] decryptedData;
+        //Create a new instance of RSACryptoServiceProvider.
+        using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider())
+        {
+            //Import the RSA Key information. This needs
+            //to include the private key information.
+            RSA.ImportParameters(RSAKeyInfo);
+
+            //Decrypt the passed byte array and specify OAEP padding.  
+            //OAEP padding is only available on Microsoft Windows XP or
+            //later.  
+            decryptedData = RSA.Decrypt(DataToDecrypt, DoOAEPPadding);
+        }
+        return decryptedData;
+    }
+    //Catch and display a CryptographicException  
+    //to the console.
+    catch (CryptographicException e)
+    {
+        Console.WriteLine(e.ToString());
+
+        return null;
+    }
+
+}
+}
+}
+
+ */
+

@@ -4,21 +4,24 @@
     <br />
 </p>
 <p>
-    <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" DataKeyNames="userID" DataSourceID="SqlDataSource1" EmptyDataText="There are no data records to display.">
+    <asp:GridView ID="GridView7" runat="server" AutoGenerateColumns="False" DataKeyNames="userID" DataSourceID="SqlDataSource1" EmptyDataText="There are no data records to display.">
         <Columns>
             <asp:BoundField DataField="userID" HeaderText="userID" ReadOnly="True" SortExpression="userID" />
             <asp:BoundField DataField="Username" HeaderText="Username" SortExpression="Username" />
+            <asp:BoundField DataField="keys" HeaderText="keys" SortExpression="keys" />
         </Columns>
     </asp:GridView>
-    <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [User] WHERE [userID] = @userID" InsertCommand="INSERT INTO [User] ([Username]) VALUES (@Username)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [userID], [Username] FROM [User]" UpdateCommand="UPDATE [User] SET [Username] = @Username WHERE [userID] = @userID">
+    <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [User] WHERE [userID] = @userID" InsertCommand="INSERT INTO [User] ([Username], [keys]) VALUES (@Username, @keys)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [userID], [Username], [keys] FROM [User]" UpdateCommand="UPDATE [User] SET [Username] = @Username, [keys] = @keys WHERE [userID] = @userID">
         <DeleteParameters>
             <asp:Parameter Name="userID" Type="Int32" />
         </DeleteParameters>
         <InsertParameters>
             <asp:Parameter Name="Username" Type="String" />
+            <asp:Parameter Name="keys" Type="String" />
         </InsertParameters>
         <UpdateParameters>
             <asp:Parameter Name="Username" Type="String" />
+            <asp:Parameter Name="keys" Type="String" />
             <asp:Parameter Name="userID" Type="Int32" />
         </UpdateParameters>
     </asp:SqlDataSource>

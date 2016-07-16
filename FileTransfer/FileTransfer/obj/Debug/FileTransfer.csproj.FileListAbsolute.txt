@@ -159,3 +159,4 @@ C:\Users\Hung\Source\Repos\NSPJ\FileTransfer\FileTransfer\obj\Debug\FileTransfer
 C:\Users\Hung\Source\Repos\NSPJ\FileTransfer\FileTransfer\bin\AjaxControlToolkit.dll
 C:\Users\daryl\Source\Repos\NSPJ\FileTransfer\FileTransfer\bin\AjaxControlToolkit.dll
 C:\Users\daryl\Source\Repos\NSPJ\FileTransfer\FileTransfer\bin\nClam.dll
+C:\Users\Hung\Source\Repos\NSPJ\FileTransfer\FileTransfer\bin\nClam.dll
