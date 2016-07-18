@@ -13,40 +13,40 @@ namespace FileTransfer
 
         //AES
 
-            /*
-        public static byte[] AES_Encrypt(byte[] bytesToBeEncrypted, byte[] passwordBytes)
+        /*
+    public static byte[] AES_Encrypt(byte[] bytesToBeEncrypted, byte[] passwordBytes)
+    {
+        byte[] encryptedBytes = null;
+
+        // Set your salt here, change it to meet your flavor:
+        // The salt bytes must be at least 8 bytes.
+        //byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+        using (MemoryStream ms = new MemoryStream())
         {
-            byte[] encryptedBytes = null;
-
-            // Set your salt here, change it to meet your flavor:
-            // The salt bytes must be at least 8 bytes.
-            //byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-
-            using (MemoryStream ms = new MemoryStream())
+            using (RijndaelManaged AES = new RijndaelManaged())
             {
-                using (RijndaelManaged AES = new RijndaelManaged())
+                AES.KeySize = 256;
+                AES.BlockSize = 128;
+
+                AES.Key = passwordBytes;
+                AES.GenerateIV();
+
+                AES.Mode = CipherMode.CBC;
+
+                using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
                 {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-
-                    AES.Key = passwordBytes;
-                    AES.GenerateIV();
-
-                    AES.Mode = CipherMode.CBC;
-
-                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
-                    {
-                        cs.Write(bytesToBeEncrypted, 0, bytesToBeEncrypted.Length);
-                        cs.Close();
-                    }
-                    encryptedBytes = ms.ToArray();
+                    cs.Write(bytesToBeEncrypted, 0, bytesToBeEncrypted.Length);
+                    cs.Close();
                 }
+                encryptedBytes = ms.ToArray();
             }
-
-            return encryptedBytes;
         }
-        */
-        public static byte[] AES_Decrypt(byte[] bytesToBeDecrypted, byte[] passwordBytes,byte[] IVBytes)
+
+        return encryptedBytes;
+    }
+    */
+        public static byte[] AES_Decrypt(byte[] bytesToBeDecrypted, byte[] passwordBytes, byte[] IVBytes)
         {
             byte[] decryptedBytes = null;
 
@@ -83,13 +83,10 @@ namespace FileTransfer
             string key = SQL.getKey(userid);
             string pwd = DecryptKey(key);
             byte[] bytesToBeEncrypted = null;
-            using (FileStream fs = new FileStream(file, FileMode.Open,FileAccess.Read))
-            { 
-                fs.Read(bytesToBeEncrypted,0, 1000000);
-            }
-            
+
             byte[] passwordBytes = Convert.FromBase64String(pwd);
             byte[] encryptedBytes = null;
+
 
 
             using (MemoryStream ms = new MemoryStream())
@@ -104,26 +101,32 @@ namespace FileTransfer
 
                     AES.Mode = CipherMode.CBC;
 
-                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
+                    using (FileStream destination = new FileStream(encrypted, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                     {
-                        cs.Write(bytesToBeEncrypted, 0, bytesToBeEncrypted.Length);
-                        cs.Close();
+                        using (CryptoStream cryptoStream = new CryptoStream(destination, AES.CreateEncryptor() , CryptoStreamMode.Write))
+                        {
+                            using (FileStream source = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
+                            {
+                                source.CopyTo(cryptoStream);
+                            }
+                        }
                     }
-                    encryptedBytes = ms.ToArray();
-                    File.WriteAllBytes(encrypted, encryptedBytes);
+
                     return Convert.ToBase64String(AES.IV);
+
                 }
             }
         }
+        
 
-        public static void DecryptFile(int userid,string file, string decrypted,string IV)
+        public static void DecryptFile(int userid, string file, string decrypted, string IV)
         {
             byte[] IVBytes = Convert.FromBase64String(IV);
             string key = SQL.getKey(userid);
             string pwd = DecryptKey(key);
             byte[] bytesToBeDecrypted = File.ReadAllBytes(file);
             byte[] passwordBytes = Convert.FromBase64String(pwd);
-            byte[] bytesDecrypted = AES_Decrypt(bytesToBeDecrypted, passwordBytes,IVBytes);
+            byte[] bytesDecrypted = AES_Decrypt(bytesToBeDecrypted, passwordBytes, IVBytes);
             File.WriteAllBytes(decrypted, bytesDecrypted);
         }
 
@@ -140,7 +143,7 @@ namespace FileTransfer
 
             using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
             {
-                encryptedkey = Convert.ToBase64String(RSA.Encrypt(keybyte,false));
+                encryptedkey = Convert.ToBase64String(RSA.Encrypt(keybyte, false));
             }
 
             return encryptedkey;
@@ -154,7 +157,7 @@ namespace FileTransfer
 
             byte[] keybyte = Convert.FromBase64String(key);
             string decryptedkey;
-            
+
             using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
             {
                 decryptedkey = Convert.ToBase64String(RSA.Decrypt(keybyte, false));
