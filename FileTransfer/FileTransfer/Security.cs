@@ -82,10 +82,8 @@ namespace FileTransfer
         {
             string key = SQL.getKey(userid);
             string pwd = DecryptKey(key);
-            byte[] bytesToBeEncrypted = null;
 
             byte[] passwordBytes = Convert.FromBase64String(pwd);
-            byte[] encryptedBytes = null;
 
 
 
@@ -101,16 +99,20 @@ namespace FileTransfer
 
                     AES.Mode = CipherMode.CBC;
 
-                    using (FileStream destination = new FileStream(encrypted, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                    {
-                        using (CryptoStream cryptoStream = new CryptoStream(destination, AES.CreateEncryptor() , CryptoStreamMode.Write))
-                        {
-                            using (FileStream source = new FileStream(file, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            {
-                                source.CopyTo(cryptoStream);
-                            }
-                        }
-                    }
+                    FileStream fsInput = new FileStream(file, FileMode.Open, FileAccess.Read);
+
+                    FileStream fsEncrypted = new FileStream(encrypted, FileMode.Create, FileAccess.Write);
+
+                    ICryptoTransform encryptor = AES.CreateEncryptor();
+
+                    CryptoStream cryptostream = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write);
+
+                    byte[] bytearrayinput = new byte[fsInput.Length];
+                    fsInput.Read(bytearrayinput, 0, bytearrayinput.Length);
+                    cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
+                    cryptostream.Close();
+                    fsInput.Close();
+                    fsEncrypted.Close();
 
                     return Convert.ToBase64String(AES.IV);
 
