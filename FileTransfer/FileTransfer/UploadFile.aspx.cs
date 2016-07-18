@@ -12,7 +12,7 @@ using System.Data.SqlClient;
 using FileTransfer;
 using System.Data;
 using System.IO.Compression;
-//using nClam;
+using nClam;
 
 namespace Testing
 {
@@ -35,8 +35,9 @@ namespace Testing
 
         protected void upload(object sender, EventArgs e)
         {
-            try {
-                //var clam = new ClamClient("localhost", 3310);
+            try
+            {
+                var clam = new ClamClient("localhost", 3310);
                 HttpFileCollection uploadedFiles = Request.Files;
                 for (int i = 0; i < uploadedFiles.Count; i++)
                 {
@@ -48,17 +49,17 @@ namespace Testing
                         string fileName = Path.GetFileName(userPostedFile.FileName);
                         string path = dirs.Peek().ToString() + "\\" + fileName;
                         FileUpload1.PostedFile.SaveAs(path);
-                       // var scanResult = clam.ScanFileOnServer(path);
-                       // if (scanResult.Result == ClamScanResults.Clean)
-                        //{
-                            Security.EncryptFile(path, path);
-                            SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid);
-                       // }
-                       // else
-                       // {
+                        var scanResult = clam.ScanFileOnServer(path);
+                        if (scanResult.Result == ClamScanResults.Clean)
+                        {
+                            string IV = Security.EncryptFile(userid, path, path);
+                            SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid, IV);
+                        }
+                        else
+                        {
                             File.Delete(path);
                             Response.Write(fileName + " is malicious!");
-                      //  }
+                        }
                     }
                 }
             }
@@ -67,7 +68,7 @@ namespace Testing
                 Response.Write("An error has occured");
             }
 
-            }       
+        }
 
 
         protected void retrieve(object sender, EventArgs e)
@@ -144,6 +145,7 @@ namespace Testing
             {
                 string filename = getname(sender);
                 string filePath = getpath(sender);
+                int userid = SQL.getUserID(Username.Text);
 
                 if (filename.Substring(0, 1).Equals("/"))
                 {
@@ -160,12 +162,13 @@ namespace Testing
                     {
                         Directory.CreateDirectory(dest + dir.Substring(source.Length));
                     }
-
+                    string IV;
                     List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
                     foreach (string file_name in filepaths)
                     {
+                        IV = SQL.getIV(file_name);
                         File.Copy(file_name, dest + file_name.Substring(source.Length));
-                        Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                        Security.DecryptFile(userid, dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length), IV);
                     }
 
                     ZipFile.CreateFromDirectory(mainfolder, zip);
@@ -181,9 +184,10 @@ namespace Testing
                 }
                 else
                 {
+                    string IV = SQL.getIV(filePath);
                     string tempPath = Server.MapPath("~/temp/") + filename;
                     File.Copy(filePath, tempPath);
-                    Security.DecryptFile(tempPath, tempPath);
+                    Security.DecryptFile(userid, tempPath, tempPath, IV);
                     Response.ClearContent();
                     Response.ContentType = ContentType;
                     Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -210,6 +214,7 @@ namespace Testing
 
         protected void DownloadSharedFile(object sender, EventArgs e)
         {
+
             string filename = getname(sender);
             string mainfolder;
             string source;
@@ -219,10 +224,9 @@ namespace Testing
             {
                 if (shareddir.Count == 0)
                 {
-                    LinkButton lb = (LinkButton)sender;
-                    GridViewRow grv = (GridViewRow)lb.NamingContainer;
-                    string user = grv.Cells[1].Text;
-                    source = SQL.getSharedFolderPath(filename, SQL.getUserID(user));
+                    string user = getshareduser(sender);
+                    int userid = SQL.getUserID(user);
+                    source = SQL.getSharedFolderPath(filename, userid);
                     mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
                     dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
                     zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
@@ -238,13 +242,16 @@ namespace Testing
                     List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
                     foreach (string file_name in filepaths)
                     {
+                        string IV = SQL.getIV(file_name);
                         File.Copy(file_name, dest + file_name.Substring(source.Length));
-                        Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                        Security.DecryptFile(userid, dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length), IV);
                     }
                 }
 
                 else
                 {
+                    string user = getshareduser(sender);
+                    int userid = SQL.getUserID(user);
                     source = shareddir.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
                     mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
                     dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
@@ -262,8 +269,9 @@ namespace Testing
                     List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
                     foreach (string file_name in filepaths)
                     {
+                        string IV = SQL.getIV(file_name);
                         File.Copy(file_name, dest + file_name.Substring(source.Length));
-                        Security.DecryptFile(dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length));
+                        Security.DecryptFile(userid, dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length), IV);
                     }
                 }
 
@@ -284,10 +292,12 @@ namespace Testing
             {
                 string fileName = getname(sender);
                 string filePath = getsharedpath(sender);
-                
+                string user = getshareduser(sender);
+                int userid = SQL.getUserID(user);
+                string IV = SQL.getIV(filePath);
                 string tempPath = Server.MapPath("~/temp/") + filename;
                 File.Copy(filePath, tempPath);
-                Security.DecryptFile(tempPath, tempPath);
+                Security.DecryptFile(userid, tempPath, tempPath, IV);
                 Response.ClearContent();
                 Response.ContentType = ContentType;
                 Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -297,8 +307,6 @@ namespace Testing
                 Response.End();
 
             }
-
-
 
         }
         protected void DeleteFile(object sender, EventArgs e)
@@ -325,7 +333,7 @@ namespace Testing
                 }
                 DataTable dt = new DataTable();
                 if (dirs.Count == 1)
-                { 
+                {
                     dt = fillMainTable(dirs.Peek().ToString());
                     GridView1.DataSource = dt;
                     GridView1.DataBind();
@@ -494,6 +502,14 @@ namespace Testing
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
             string filename = grv.Cells[0].Text;
             return filename;
+        }
+
+        private string getshareduser(object sender)
+        {
+            LinkButton lb = (LinkButton)sender;
+            GridViewRow grv = (GridViewRow)lb.NamingContainer;
+            string user = grv.Cells[1].Text;
+            return user;
         }
 
 
@@ -936,7 +952,7 @@ namespace Testing
          * 
          * 
          * iZ8duv2/Zq1jqPGbFwbv4NZ/QLLljQCIhQ8h1ADbDVI=
-NPNxRsrC/DXyAji7fXAEAyR9O5JP6AxjdCQHOTWrq3AzXTshbZ2CwCcyJ3MF2WGHTU1jcYpQAtSRnDaAi0CzPuYs+1KhVUY2e3yBOQ7Rq4co1Jq6PwfsFpXoWC4P3I5MV+5bo8cOFUqnZbwdbkMUeJehyzSVk/6a1BtJfya5f/M=
+    NPNxRsrC/DXyAji7fXAEAyR9O5JP6AxjdCQHOTWrq3AzXTshbZ2CwCcyJ3MF2WGHTU1jcYpQAtSRnDaAi0CzPuYs+1KhVUY2e3yBOQ7Rq4co1Jq6PwfsFpXoWC4P3I5MV+5bo8cOFUqnZbwdbkMUeJehyzSVk/6a1BtJfya5f/M=
 
 
 LMnSA/3T3ONADqTxWHk53ZwvvA0tROwCPAnTyq4zJxY=

@@ -426,12 +426,12 @@ namespace FileTransfer
             }
         }
 
-        public static void insertFile(string fileName, int fileSize, string path, int userid)
+        public static void insertFile(string fileName, int fileSize, string path, int userid,string IV)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
             {
                 SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID) VALUES ('" + fileName + "','" + fileSize + "','" + path + "','" + userid + "');";
+                cmd.CommandText = "INSERT INTO [userFiles] (fileName,fileSize,filePath,userID,IV) VALUES ('" + fileName + "','" + fileSize + "','" + path + "','" + userid + "','" + IV + "');";
                 cmd.Connection = connection;
                 connection.Open();
                 cmd.ExecuteNonQuery();
@@ -570,6 +570,48 @@ namespace FileTransfer
                 connection.Close();
                 rd.Close();
                 return Users;
+            }
+        }
+
+        public static string getKey(int userid)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                string key = "";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT keys FROM [User] WHERE userID = '" + userid + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    key = rd.GetString(0);
+                }
+                connection.Close();
+                rd.Close();
+                return key;
+            }
+        }
+
+        public static string getIV(string filePath)
+        {
+            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                string IV = "";
+                SqlCommand cmd = new SqlCommand();
+                cmd.CommandText = "SELECT IV FROM [UserFiles] WHERE filePath = '" + filePath + "';";
+                cmd.Connection = connection;
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                if (rd.HasRows)
+                {
+                    rd.Read();
+                    IV = rd.GetString(0);
+                }
+                connection.Close();
+                rd.Close();
+                return IV;
             }
         }
 

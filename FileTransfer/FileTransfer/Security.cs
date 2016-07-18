@@ -13,14 +13,14 @@ namespace FileTransfer
 
         //AES
 
-
+            /*
         public static byte[] AES_Encrypt(byte[] bytesToBeEncrypted, byte[] passwordBytes)
         {
             byte[] encryptedBytes = null;
 
             // Set your salt here, change it to meet your flavor:
             // The salt bytes must be at least 8 bytes.
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+            //byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -29,9 +29,8 @@ namespace FileTransfer
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
 
-                    var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
+                    AES.Key = passwordBytes;
+                    AES.GenerateIV();
 
                     AES.Mode = CipherMode.CBC;
 
@@ -46,14 +45,14 @@ namespace FileTransfer
 
             return encryptedBytes;
         }
-
-        public static byte[] AES_Decrypt(byte[] bytesToBeDecrypted, byte[] passwordBytes)
+        */
+        public static byte[] AES_Decrypt(byte[] bytesToBeDecrypted, byte[] passwordBytes,byte[] IVBytes)
         {
             byte[] decryptedBytes = null;
 
             // Set your salt here, change it to meet your flavor:
             // The salt bytes must be at least 8 bytes.
-            byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+            //byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
 
             using (MemoryStream ms = new MemoryStream())
             {
@@ -62,9 +61,8 @@ namespace FileTransfer
                     AES.KeySize = 256;
                     AES.BlockSize = 128;
 
-                    var key = new Rfc2898DeriveBytes(passwordBytes, saltBytes, 1000);
-                    AES.Key = key.GetBytes(AES.KeySize / 8);
-                    AES.IV = key.GetBytes(AES.BlockSize / 8);
+                    AES.Key = passwordBytes;
+                    AES.IV = IVBytes;
 
                     AES.Mode = CipherMode.CBC;
 
@@ -80,36 +78,52 @@ namespace FileTransfer
             return decryptedBytes;
         }
 
-        public static void EncryptFile(string file, string encrypted)
+        public static string EncryptFile(int userid, string file, string encrypted)
         {
+            string key = SQL.getKey(userid);
+            string pwd = DecryptKey(key);
+            byte[] bytesToBeEncrypted = null;
+            using (FileStream fs = new FileStream(file, FileMode.Open,FileAccess.Read))
+            { 
+                fs.Read(bytesToBeEncrypted,0, 1000000);
+            }
+            
+            byte[] passwordBytes = Convert.FromBase64String(pwd);
+            byte[] encryptedBytes = null;
 
-            string password = "abcd1234";
 
-            byte[] bytesToBeEncrypted = File.ReadAllBytes(file);
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
+            using (MemoryStream ms = new MemoryStream())
+            {
+                using (RijndaelManaged AES = new RijndaelManaged())
+                {
+                    AES.KeySize = 256;
+                    AES.BlockSize = 128;
 
-            // Hash the password with SHA256
-            passwordBytes = SHA256.Create().ComputeHash(passwordBytes);
+                    AES.Key = passwordBytes;
+                    AES.GenerateIV();
 
-            byte[] bytesEncrypted = AES_Encrypt(bytesToBeEncrypted, passwordBytes);
+                    AES.Mode = CipherMode.CBC;
 
-
-
-            File.WriteAllBytes(encrypted, bytesEncrypted);
+                    using (var cs = new CryptoStream(ms, AES.CreateEncryptor(), CryptoStreamMode.Write))
+                    {
+                        cs.Write(bytesToBeEncrypted, 0, bytesToBeEncrypted.Length);
+                        cs.Close();
+                    }
+                    encryptedBytes = ms.ToArray();
+                    File.WriteAllBytes(encrypted, encryptedBytes);
+                    return Convert.ToBase64String(AES.IV);
+                }
+            }
         }
 
-        public static void DecryptFile(string file, string decrypted)
+        public static void DecryptFile(int userid,string file, string decrypted,string IV)
         {
-
-            string password = "abcd1234";
-
+            byte[] IVBytes = Convert.FromBase64String(IV);
+            string key = SQL.getKey(userid);
+            string pwd = DecryptKey(key);
             byte[] bytesToBeDecrypted = File.ReadAllBytes(file);
-            byte[] passwordBytes = Encoding.UTF8.GetBytes(password);
-            passwordBytes = SHA256.Create().ComputeHash(passwordBytes);
-
-            byte[] bytesDecrypted = AES_Decrypt(bytesToBeDecrypted, passwordBytes);
-
-
+            byte[] passwordBytes = Convert.FromBase64String(pwd);
+            byte[] bytesDecrypted = AES_Decrypt(bytesToBeDecrypted, passwordBytes,IVBytes);
             File.WriteAllBytes(decrypted, bytesDecrypted);
         }
 
@@ -121,9 +135,7 @@ namespace FileTransfer
             CspParameters cp = new CspParameters();
             cp.KeyContainerName = "RSAKeys";
 
-            UnicodeEncoding ByteConverter = new UnicodeEncoding();
-
-            byte[] keybyte = Encoding.Unicode.GetBytes(key);
+            byte[] keybyte = Convert.FromBase64String(key);
             string encryptedkey;
 
             using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
@@ -140,14 +152,12 @@ namespace FileTransfer
             CspParameters cp = new CspParameters();
             cp.KeyContainerName = "RSAKeys";
 
-            UnicodeEncoding ByteConverter = new UnicodeEncoding();
-
             byte[] keybyte = Convert.FromBase64String(key);
             string decryptedkey;
             
             using (RSACryptoServiceProvider RSA = new RSACryptoServiceProvider(cp))
             {
-                decryptedkey = Encoding.Unicode.GetString(RSA.Decrypt(keybyte, false));
+                decryptedkey = Convert.ToBase64String(RSA.Decrypt(keybyte, false));
             }
             return decryptedkey;
         }

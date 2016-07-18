@@ -29,7 +29,7 @@
 <p>
     &nbsp;</p>
 <p>
-    <asp:GridView ID="GridView4" runat="server" AutoGenerateColumns="False" DataKeyNames="fileID" DataSourceID="SqlDataSource2" EmptyDataText="There are no data records to display.">
+    <asp:GridView ID="GridView8" runat="server" AutoGenerateColumns="False" DataKeyNames="fileID" DataSourceID="SqlDataSource2" EmptyDataText="There are no data records to display.">
         <Columns>
             <asp:BoundField DataField="fileID" HeaderText="fileID" ReadOnly="True" SortExpression="fileID" />
             <asp:BoundField DataField="fileName" HeaderText="fileName" SortExpression="fileName" />
@@ -37,9 +37,10 @@
             <asp:BoundField DataField="filePath" HeaderText="filePath" SortExpression="filePath" />
             <asp:BoundField DataField="userID" HeaderText="userID" SortExpression="userID" />
             <asp:BoundField DataField="uploadTime" HeaderText="uploadTime" SortExpression="uploadTime" />
+            <asp:BoundField DataField="IV" HeaderText="IV" SortExpression="IV" />
         </Columns>
     </asp:GridView>
-    <asp:SqlDataSource ID="SqlDataSource2" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [UserFiles] WHERE [fileID] = @fileID" InsertCommand="INSERT INTO [UserFiles] ([fileName], [fileSize], [filePath], [userID], [uploadTime]) VALUES (@fileName, @fileSize, @filePath, @userID, @uploadTime)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [fileID], [fileName], [fileSize], [filePath], [userID], [uploadTime] FROM [UserFiles]" UpdateCommand="UPDATE [UserFiles] SET [fileName] = @fileName, [fileSize] = @fileSize, [filePath] = @filePath, [userID] = @userID, [uploadTime] = @uploadTime WHERE [fileID] = @fileID">
+    <asp:SqlDataSource ID="SqlDataSource2" runat="server" ConnectionString="<%$ ConnectionStrings:FileDatabaseConnectionString2 %>" DeleteCommand="DELETE FROM [UserFiles] WHERE [fileID] = @fileID" InsertCommand="INSERT INTO [UserFiles] ([fileName], [fileSize], [filePath], [userID], [uploadTime], [IV]) VALUES (@fileName, @fileSize, @filePath, @userID, @uploadTime, @IV)" ProviderName="<%$ ConnectionStrings:FileDatabaseConnectionString2.ProviderName %>" SelectCommand="SELECT [fileID], [fileName], [fileSize], [filePath], [userID], [uploadTime], [IV] FROM [UserFiles]" UpdateCommand="UPDATE [UserFiles] SET [fileName] = @fileName, [fileSize] = @fileSize, [filePath] = @filePath, [userID] = @userID, [uploadTime] = @uploadTime, [IV] = @IV WHERE [fileID] = @fileID">
         <DeleteParameters>
             <asp:Parameter Name="fileID" Type="Int32" />
         </DeleteParameters>
@@ -49,6 +50,7 @@
             <asp:Parameter Name="filePath" Type="String" />
             <asp:Parameter Name="userID" Type="Int32" />
             <asp:Parameter Name="uploadTime" Type="DateTime" />
+            <asp:Parameter Name="IV" Type="String" />
         </InsertParameters>
         <UpdateParameters>
             <asp:Parameter Name="fileName" Type="String" />
@@ -56,6 +58,7 @@
             <asp:Parameter Name="filePath" Type="String" />
             <asp:Parameter Name="userID" Type="Int32" />
             <asp:Parameter Name="uploadTime" Type="DateTime" />
+            <asp:Parameter Name="IV" Type="String" />
             <asp:Parameter Name="fileID" Type="Int32" />
         </UpdateParameters>
     </asp:SqlDataSource>
