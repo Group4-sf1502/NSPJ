@@ -45,7 +45,7 @@ namespace Testing
                     HttpPostedFile userPostedFile = uploadedFiles[i];
 
                     if (userPostedFile.ContentLength > 0)
-                    {   
+                    {
                         string fileName = Path.GetFileName(userPostedFile.FileName);
                         string path = dirs.Peek().ToString() + "\\" + fileName;
                         string dest = Server.MapPath("~/temp/") + fileName;
@@ -174,7 +174,7 @@ namespace Testing
                     string dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
                     string zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
 
-                    
+
                     Directory.CreateDirectory(mainfolder);
                     Directory.CreateDirectory(dest);
 
@@ -393,7 +393,7 @@ namespace Testing
 
         protected void Cancel_Click(object sender, EventArgs e)
         {
-            ModalPopupExtender2.Hide(); 
+            ModalPopupExtender2.Hide();
         }
 
         //Popup for sharing files
@@ -449,7 +449,7 @@ namespace Testing
         {
             string filename = getname(sender);
             int userid = SQL.getUserID(Username.Text);
-            if (filename.Substring(0,1).Equals("/"))
+            if (filename.Substring(0, 1).Equals("/"))
             {
                 int sharinguser = SQL.getUserID(getshareduser(sender));
                 string source = SQL.getSharedFolderPath(filename, sharinguser);
@@ -457,9 +457,9 @@ namespace Testing
             }
             else
             {
-            string filePath = getsharedpath(sender);
-            int fileid = SQL.getFileID(filePath);
-            SQL.removeSharedFile(fileid);
+                string filePath = getsharedpath(sender);
+                int fileid = SQL.getFileID(filePath);
+                SQL.removeSharedFile(fileid);
             }
 
             //Refresh table
@@ -915,7 +915,7 @@ namespace Testing
                 }
 
                 SQL.moveFolder(filenames, userid, filepaths);
-                
+
             }
 
 
@@ -987,104 +987,103 @@ namespace Testing
                 GridView1.DataSource = dt;
                 GridView1.DataBind();
             }
+
+
+            /*
+             * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = connection;
+                    cmd.CommandText = "UPDATE [User] SET keys = '" + encryptedkey + "' WHERE userID = 11;";
+                    connection.Open();
+                    cmd.ExecuteNonQuery();
+                }
+             * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+                {
+                    SqlCommand cmd = new SqlCommand();
+                    cmd.Connection = connection;
+                    cmd.CommandText = "SELECT keys FROM [User] WHERE userID = 11";
+                    connection.Open();
+                    SqlDataReader rd = cmd.ExecuteReader();
+                    rd.Read();
+                    encryptedkey = rd.GetString(0);
+                    string decryptedkey = Security.DecryptKey(encryptedkey);
+                    Username.Text += decryptedkey;
+                }
+             * 
+             * 
+             * iZ8duv2/Zq1jqPGbFwbv4NZ/QLLljQCIhQ8h1ADbDVI=
+        NPNxRsrC/DXyAji7fXAEAyR9O5JP6AxjdCQHOTWrq3AzXTshbZ2CwCcyJ3MF2WGHTU1jcYpQAtSRnDaAi0CzPuYs+1KhVUY2e3yBOQ7Rq4co1Jq6PwfsFpXoWC4P3I5MV+5bo8cOFUqnZbwdbkMUeJehyzSVk/6a1BtJfya5f/M=
+
+
+    LMnSA/3T3ONADqTxWHk53ZwvvA0tROwCPAnTyq4zJxY=
+    NrwTNW1bzPT5ZqeUkniw1y38Z4sdmNSklQV3tknhnqLxg1a+547iNtxpNPweDGDEl5x1PV19PRdGLDWPMxUVfVWBnotyVZBkqb1zhZnojD77Pu2ym4mWdGO0w+Hg7G1UjAM//f3RkKBAAU2KRVqZE4GYTvnz0i/yrm81FsRQk8w=
+
+
+    qFUMGMVgTJQDYwQ+MlmfavoI5JsjPcmGuWdEHO7kJhY=
+    GvGLWL+TG0DY8DlZdybqT/gl1nllbtMOdZ56tlz0spIo5WWF9PmLby1PtQ1Uw7PyqsbrjpS7A2/w6zeVyGqLTJKLS8IPycR0ykc7dBPcAutC45ylbQbVaT5vQqiswfyIulvkKLCT9hV1UxFT0Z44NAF+H2j+XQ2Jupvw4i+qmsM=
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+             * 
+
+
+            /*
+    protected void Button8_Click(object sender, EventArgs e)
+    {
+    TextBox1.Text += "Helo";
+    var clam = new ClamClient("localhost", 3310);
+    var scanResult = clam.ScanFileOnServer(@"C:\Users\daryl\Desktop\z.com");
+
+    switch (scanResult.Result)
+    {
+    case ClamScanResults.Clean:
+    Response.Write("The file is clean!");
+    break;
+    case ClamScanResults.VirusDetected:
+    Response.Write("Virus Found!");
+    break;
+    case ClamScanResults.Error:
+    Response.Write("Error occurred");
+    break;
+    }
+    }*/
+            /*
+    private string changedirection(SortDirection e)
+    {
+       string newdirection = "";
+       switch (e)
+       {
+           case SortDirection.Ascending: newdirection = "DESC";break;
+           case SortDirection.Descending: newdirection = "ASC";break;
+       }
+       return newdirection;
+    }
+
+    protected void sortview(object sender, GridViewSortEventArgs e)
+    {
+       Response.Write("Sort expression: " + e.SortExpression);
+       Response.Write("Sort direction: " + e.SortDirection);
+
+       DataTable dt = GridView1.DataSource as DataTable;
+
+       if (dt != null)
+       {
+           DataView dv = new DataView(dt);
+           dv.Sort = e.SortExpression + " " + "DESC";
+
+           GridView1.DataSource = dv;
+           GridView1.DataBind();
+       }
+    } 
+    */
+
         }
-
-
-
-        /*
-         * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-            {
-                SqlCommand cmd = new SqlCommand();
-                cmd.Connection = connection;
-                cmd.CommandText = "UPDATE [User] SET keys = '" + encryptedkey + "' WHERE userID = 11;";
-                connection.Open();
-                cmd.ExecuteNonQuery();
-            }
-         * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-            {
-                SqlCommand cmd = new SqlCommand();
-                cmd.Connection = connection;
-                cmd.CommandText = "SELECT keys FROM [User] WHERE userID = 11";
-                connection.Open();
-                SqlDataReader rd = cmd.ExecuteReader();
-                rd.Read();
-                encryptedkey = rd.GetString(0);
-                string decryptedkey = Security.DecryptKey(encryptedkey);
-                Username.Text += decryptedkey;
-            }
-         * 
-         * 
-         * iZ8duv2/Zq1jqPGbFwbv4NZ/QLLljQCIhQ8h1ADbDVI=
-    NPNxRsrC/DXyAji7fXAEAyR9O5JP6AxjdCQHOTWrq3AzXTshbZ2CwCcyJ3MF2WGHTU1jcYpQAtSRnDaAi0CzPuYs+1KhVUY2e3yBOQ7Rq4co1Jq6PwfsFpXoWC4P3I5MV+5bo8cOFUqnZbwdbkMUeJehyzSVk/6a1BtJfya5f/M=
-
-
-LMnSA/3T3ONADqTxWHk53ZwvvA0tROwCPAnTyq4zJxY=
-NrwTNW1bzPT5ZqeUkniw1y38Z4sdmNSklQV3tknhnqLxg1a+547iNtxpNPweDGDEl5x1PV19PRdGLDWPMxUVfVWBnotyVZBkqb1zhZnojD77Pu2ym4mWdGO0w+Hg7G1UjAM//f3RkKBAAU2KRVqZE4GYTvnz0i/yrm81FsRQk8w=
-
-
-qFUMGMVgTJQDYwQ+MlmfavoI5JsjPcmGuWdEHO7kJhY=
-GvGLWL+TG0DY8DlZdybqT/gl1nllbtMOdZ56tlz0spIo5WWF9PmLby1PtQ1Uw7PyqsbrjpS7A2/w6zeVyGqLTJKLS8IPycR0ykc7dBPcAutC45ylbQbVaT5vQqiswfyIulvkKLCT9hV1UxFT0Z44NAF+H2j+XQ2Jupvw4i+qmsM=
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-         * 
-
-      
-        /*
-protected void Button8_Click(object sender, EventArgs e)
-{
-TextBox1.Text += "Helo";
-var clam = new ClamClient("localhost", 3310);
-var scanResult = clam.ScanFileOnServer(@"C:\Users\daryl\Desktop\z.com");
-
-switch (scanResult.Result)
-{
-case ClamScanResults.Clean:
-Response.Write("The file is clean!");
-break;
-case ClamScanResults.VirusDetected:
-Response.Write("Virus Found!");
-break;
-case ClamScanResults.Error:
-Response.Write("Error occurred");
-break;
-}
-}*/
-        /*
-private string changedirection(SortDirection e)
-{
-   string newdirection = "";
-   switch (e)
-   {
-       case SortDirection.Ascending: newdirection = "DESC";break;
-       case SortDirection.Descending: newdirection = "ASC";break;
-   }
-   return newdirection;
-}
-
-protected void sortview(object sender, GridViewSortEventArgs e)
-{
-   Response.Write("Sort expression: " + e.SortExpression);
-   Response.Write("Sort direction: " + e.SortDirection);
-
-   DataTable dt = GridView1.DataSource as DataTable;
-
-   if (dt != null)
-   {
-       DataView dv = new DataView(dt);
-       dv.Sort = e.SortExpression + " " + "DESC";
-
-       GridView1.DataSource = dv;
-       GridView1.DataBind();
-   }
-} 
-*/
-
     }
 }

@@ -11,23 +11,6 @@ namespace FileTransfer
     public class SQL
     {
 
-        public static DataTable getDataTable(int userid)
-        {
-            using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-            {
-                DataTable dt = new DataTable();
-                string command = "SELECT fileName,uploadTime FROM UserFiles WHERE userid = '" + userid + "';";
-                SqlCommand cmd = new SqlCommand();
-                cmd.CommandText = command;
-                cmd.Connection = connection;
-                connection.Open();
-                SqlDataAdapter sda = new SqlDataAdapter();
-                sda.SelectCommand = cmd;
-                sda.Fill(dt);
-                connection.Close();
-                return dt;
-            }
-        }
 
         public static List<String> getSharedDataTable(List<int> fileid)
         {
@@ -142,7 +125,7 @@ namespace FileTransfer
         }
 
 
-
+        /*
         public static List<String> getFilePaths(List<int> fileid)
         {
             using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
@@ -184,6 +167,7 @@ namespace FileTransfer
                 return filePaths;
             }
         }
+        
 
         public static List<String> getFilePaths(int userid)
         {
@@ -211,6 +195,7 @@ namespace FileTransfer
 
         }
 
+    */
 
         public static List<int> getShareFileID(int userid)
         {
@@ -307,7 +292,7 @@ namespace FileTransfer
             }
             return fileid;
         }
-
+        /*
         public static int getUserID(int fileid)
         {
             int userid = 0;
@@ -329,7 +314,8 @@ namespace FileTransfer
             }
             return userid;
         }
-
+        */
+        
         public static String getUsername(int userid)
         {
             string username = "";
