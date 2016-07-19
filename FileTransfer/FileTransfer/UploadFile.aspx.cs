@@ -63,6 +63,8 @@ namespace Testing
                         }
                     }
                 }
+
+                //Refresh table after upload
                 DataTable dt;
                 if (dirs.Count == 1)
                 {
@@ -164,6 +166,7 @@ namespace Testing
                 string filePath = getpath(sender);
                 int userid = SQL.getUserID(Username.Text);
 
+                //Test if folder
                 if (filename.Substring(0, 1).Equals("/"))
                 {
                     string source = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
@@ -171,22 +174,26 @@ namespace Testing
                     string dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
                     string zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
 
+                    
                     Directory.CreateDirectory(mainfolder);
                     Directory.CreateDirectory(dest);
 
-
+                    //Replicate folder & subfolders
                     foreach (string dir in Directory.GetDirectories(source, "*", SearchOption.AllDirectories))
                     {
                         Directory.CreateDirectory(dest + dir.Substring(source.Length));
                     }
+
                     string IV;
+
                     List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", SearchOption.AllDirectories));
+                    //Replicate files in folder & subfolders
                     foreach (string file_name in filepaths)
                     {
                         IV = SQL.getIV(file_name);
                         Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
                     }
-
+                    //Create zip file
                     ZipFile.CreateFromDirectory(mainfolder, zip);
                     Response.ClearContent();
                     Response.ContentType = ContentType;
@@ -198,6 +205,7 @@ namespace Testing
                     Response.End();
 
                 }
+                //Download sequence for files
                 else
                 {
                     string IV = SQL.getIV(filePath);
@@ -235,8 +243,10 @@ namespace Testing
             string source;
             string dest;
             string zip;
+            //Test if folder
             if (filename.Substring(0, 1).Equals("/"))
             {
+                //Overview of shared folders + files
                 if (shareddir.Count == 0)
                 {
                     string user = getshareduser(sender);
@@ -255,13 +265,13 @@ namespace Testing
                     }
 
                     List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
-                    foreach (string file_name in filepaths)
+                    foreach (string file_path in filepaths)
                     {
-                        string IV = SQL.getIV(file_name);
-                        Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
+                        string IV = SQL.getIV(file_path);
+                        Security.DecryptFile(userid, file_path, dest + file_path.Substring(source.Length), IV);
                     }
                 }
-
+                //Specific shared folders
                 else
                 {
                     string user = getshareduser(sender);
@@ -281,14 +291,14 @@ namespace Testing
                     }
 
                     List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
-                    foreach (string file_name in filepaths)
+                    foreach (string file_path in filepaths)
                     {
-                        string IV = SQL.getIV(file_name);
-                        Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
+                        string IV = SQL.getIV(file_path);
+                        Security.DecryptFile(userid, file_path, dest + file_path.Substring(source.Length), IV);
                     }
                 }
 
-
+                //Create zip
                 ZipFile.CreateFromDirectory(mainfolder, zip);
                 Response.ClearContent();
                 Response.ContentType = ContentType;
@@ -300,7 +310,7 @@ namespace Testing
                 Response.End();
 
             }
-
+            //Shared files
             else
             {
                 string fileName = getname(sender);
@@ -343,6 +353,7 @@ namespace Testing
                     File.Delete(filePath);
                     SQL.deleteFile(filePath);
                 }
+                //Refresh gridview
                 DataTable dt = new DataTable();
                 if (dirs.Count == 1)
                 {
@@ -372,8 +383,6 @@ namespace Testing
         protected void ViewMyFiles(object sender, EventArgs e)
         {
             MultiView.ActiveViewIndex = 0;
-
-
         }
 
         protected void ViewSharedFiles(object sender, EventArgs e)
@@ -384,9 +393,10 @@ namespace Testing
 
         protected void Cancel_Click(object sender, EventArgs e)
         {
-            ModalPopupExtender2.Hide();
+            ModalPopupExtender2.Hide(); 
         }
 
+        //Popup for sharing files
         protected void showpopup(object sender, EventArgs e)
         {
             DataTable dt;
@@ -412,8 +422,6 @@ namespace Testing
             ModalPopupExtender2.Show();
         }
 
-
-
         protected void fileshare(object sender, EventArgs e)
         {
 
@@ -436,30 +444,65 @@ namespace Testing
             }
 
         }
-
+        //Remove shared files
         protected void RemoveFile(object sender, EventArgs e)
         {
+            string filename = getname(sender);
+            int userid = SQL.getUserID(Username.Text);
+            if (filename.Substring(0,1).Equals("/"))
+            {
+                int sharinguser = SQL.getUserID(getshareduser(sender));
+                string source = SQL.getSharedFolderPath(filename, sharinguser);
+                SQL.deleteSharedFolder(source, userid);
+            }
+            else
+            {
             string filePath = getsharedpath(sender);
             int fileid = SQL.getFileID(filePath);
             SQL.removeSharedFile(fileid);
+            }
+
+            //Refresh table
+            DataTable dt;
+            if (shareddir.Count == 0)
+            {
+                dt = fillMainSharedTable(userid);
+            }
+            else
+            {
+                dt = fillSharedTable(shareddir.Peek().ToString(), getshareduser(sender));
+            }
+
+            GridView2.DataSource = dt;
+            GridView2.DataBind();
+
+
         }
 
         protected void RemoveShare(object sender, EventArgs e)
         {
+            DataTable dt;
             if (fileName.Text.Substring(0, 1).Equals("/"))
             {
                 string sharedwith = getname(sender);
                 int shareduser = SQL.getUserID(sharedwith);
                 string folderpath = dirs.Peek().ToString() + "\\" + fileName.Text.Substring(1, fileName.Text.Length - 2);
                 SQL.deleteSharedFolder(folderpath, shareduser);
+                dt = SQL.retrieveSharedFolders(folderpath);
+                sharedList.DataSource = dt;
+                sharedList.DataBind();
             }
             else
             {
                 int fileid = SQL.getFileID(fileName.Text, SQL.getUserID(Username.Text));
                 SQL.removeSharedFile(fileid);
+                dt = SQL.getSharedUsers(fileid);
+                sharedList.DataSource = dt;
+                sharedList.DataBind();
             }
         }
 
+        //Apply CSS style
         protected void rowdatabind(object sender, GridViewRowEventArgs e)
         {
             if (e.Row.RowType == DataControlRowType.Header)
@@ -473,6 +516,7 @@ namespace Testing
             }
         }
 
+        //Add css when converting ASP.NET to HTML for client side
         protected override void Render(HtmlTextWriter writer)
         {
             string condition = "/";
@@ -545,6 +589,7 @@ namespace Testing
             return filePath;
         }
 
+        //Clicking on rows in gv1
         protected void GridView1_SelectedIndexChanged(object sender, EventArgs e)
         {
             string foldername;
@@ -590,7 +635,7 @@ namespace Testing
             }
         }
 
-
+        //Clicking on rows in gv2
         protected void GridView2_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -870,6 +915,7 @@ namespace Testing
                 }
 
                 SQL.moveFolder(filenames, userid, filepaths);
+                
             }
 
 
@@ -943,20 +989,7 @@ namespace Testing
             }
         }
 
-        protected void Button8_Click(object sender, EventArgs e)
-        {
-            string key = Username.Text;
-            string encryptedkey = Security.EncryptKey(key);
-            TextBox1.Text = encryptedkey;
-        }
 
-        protected void Button9_Click(object sender, EventArgs e)
-        {
-            string encryptedkey = Username.Text;
-            string decryptedkey = Security.DecryptKey(encryptedkey);
-            TextBox1.Text = decryptedkey;
-
-        }
 
         /*
          * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))

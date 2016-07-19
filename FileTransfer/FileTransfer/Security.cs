@@ -117,11 +117,6 @@ namespace FileTransfer
                 ICryptoTransform encryptor = AES.CreateEncryptor();
 
                 CryptoStream cryptostream = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write);
-                /*
-                int data;
-                while ((data = fsInput.ReadByte()) != -1)
-                    cryptostream.WriteByte((byte)data);
-                */
                 
                 int bytesread;
                 byte[] buffer = new byte[16384];
