@@ -48,11 +48,12 @@ namespace Testing
                         int userid = SQL.getUserID(Username.Text);
                         string fileName = Path.GetFileName(userPostedFile.FileName);
                         string path = dirs.Peek().ToString() + "\\" + fileName;
-                        FileUpload1.PostedFile.SaveAs(path);
-                        var scanResult = clam.ScanFileOnServer(path);
+                        string dest = Server.MapPath("~/temp/") + fileName;
+                        FileUpload1.PostedFile.SaveAs(dest);
+                        var scanResult = clam.ScanFileOnServer(dest);
                         if (scanResult.Result == ClamScanResults.Clean)
                         {
-                            string IV = Security.EncryptFile(userid, path, path);
+                            string IV = Security.EncryptFile(userid, dest, path);
                             SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid, IV);
                         }
                         else
@@ -62,6 +63,21 @@ namespace Testing
                         }
                     }
                 }
+                DataTable dt;
+                if (dirs.Count == 1)
+                {
+                    dt = fillMainTable(dirs.Peek().ToString());
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
+                else
+                {
+                    dt = fillTable(dirs.Peek().ToString());
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
+
+
             }
             catch (InvalidOperationException exc)
             {
@@ -75,6 +91,7 @@ namespace Testing
         {
             try
             {
+                dirs.Clear();
                 int userid = SQL.getUserID(Username.Text);
 
                 //My files
@@ -163,12 +180,11 @@ namespace Testing
                         Directory.CreateDirectory(dest + dir.Substring(source.Length));
                     }
                     string IV;
-                    List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", System.IO.SearchOption.AllDirectories));
+                    List<string> filepaths = new List<string>(Directory.GetFiles(source, "*.*", SearchOption.AllDirectories));
                     foreach (string file_name in filepaths)
                     {
                         IV = SQL.getIV(file_name);
-                        File.Copy(file_name, dest + file_name.Substring(source.Length));
-                        Security.DecryptFile(userid, dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length), IV);
+                        Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
                     }
 
                     ZipFile.CreateFromDirectory(mainfolder, zip);
@@ -186,8 +202,7 @@ namespace Testing
                 {
                     string IV = SQL.getIV(filePath);
                     string tempPath = Server.MapPath("~/temp/") + filename;
-                    File.Copy(filePath, tempPath);
-                    Security.DecryptFile(userid, tempPath, tempPath, IV);
+                    Security.DecryptFile(userid, filePath, tempPath, IV);
                     Response.ClearContent();
                     Response.ContentType = ContentType;
                     Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -243,8 +258,7 @@ namespace Testing
                     foreach (string file_name in filepaths)
                     {
                         string IV = SQL.getIV(file_name);
-                        File.Copy(file_name, dest + file_name.Substring(source.Length));
-                        Security.DecryptFile(userid, dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length), IV);
+                        Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
                     }
                 }
 
@@ -270,8 +284,7 @@ namespace Testing
                     foreach (string file_name in filepaths)
                     {
                         string IV = SQL.getIV(file_name);
-                        File.Copy(file_name, dest + file_name.Substring(source.Length));
-                        Security.DecryptFile(userid, dest + file_name.Substring(source.Length), dest + file_name.Substring(source.Length), IV);
+                        Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
                     }
                 }
 
@@ -296,8 +309,7 @@ namespace Testing
                 int userid = SQL.getUserID(user);
                 string IV = SQL.getIV(filePath);
                 string tempPath = Server.MapPath("~/temp/") + filename;
-                File.Copy(filePath, tempPath);
-                Security.DecryptFile(userid, tempPath, tempPath, IV);
+                Security.DecryptFile(userid, filePath, tempPath, IV);
                 Response.ClearContent();
                 Response.ContentType = ContentType;
                 Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -890,20 +902,25 @@ namespace Testing
             }
 
             ModalPopupExtender3.Hide();
-
-
-        }
-
-        protected void dirlist_SelectedNodeChanged(object sender, EventArgs e)
-        {
+            DataTable dt;
+            if (dirs.Count == 1)
+            {
+                dt = fillMainTable(dirs.Peek().ToString());
+                GridView1.DataSource = dt;
+                GridView1.DataBind();
+            }
+            else
+            {
+                dt = fillTable(dirs.Peek().ToString());
+                GridView1.DataSource = dt;
+                GridView1.DataBind();
+            }
 
         }
 
         protected void addFolder_Click(object sender, EventArgs e)
         {
             ModalPopupExtender4.Show();
-            // Popup for folder name
-            // Directory.createdirectory
         }
 
         protected void cr8folder(object sender, EventArgs e)
@@ -911,6 +928,19 @@ namespace Testing
             string folder = foldername.Text;
             string path = dirs.Peek().ToString() + "\\" + folder;
             Directory.CreateDirectory(path);
+            DataTable dt;
+            if (dirs.Count == 1)
+            {
+                dt = fillMainTable(dirs.Peek().ToString());
+                GridView1.DataSource = dt;
+                GridView1.DataBind();
+            }
+            else
+            {
+                dt = fillTable(dirs.Peek().ToString());
+                GridView1.DataSource = dt;
+                GridView1.DataBind();
+            }
         }
 
         protected void Button8_Click(object sender, EventArgs e)

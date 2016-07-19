@@ -87,7 +87,7 @@
 
     <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
-            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="700px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
+            <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="1250px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
                 <Columns>
                     <asp:BoundField DataField="Name" HeaderText="File Name"  />
                     <asp:BoundField DataField="Last Modified" HeaderText="Last Modified"  />
@@ -160,7 +160,7 @@
         <br />
         <br />
          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-        <asp:TreeView ID="dirlist" runat="server" OnSelectedNodeChanged="dirlist_SelectedNodeChanged" ></asp:TreeView>
+        <asp:TreeView ID="dirlist" runat="server" ></asp:TreeView>
         <br />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <asp:Button ID="move" runat="server" Text="Move" OnClick="move_Click" />

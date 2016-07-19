@@ -45,39 +45,54 @@ namespace FileTransfer
 
         return encryptedBytes;
     }
-    */
-        public static byte[] AES_Decrypt(byte[] bytesToBeDecrypted, byte[] passwordBytes, byte[] IVBytes)
-        {
-            byte[] decryptedBytes = null;
-
-            // Set your salt here, change it to meet your flavor:
-            // The salt bytes must be at least 8 bytes.
-            //byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-
-            using (MemoryStream ms = new MemoryStream())
+    
+        
+            public static byte[] AES_Decrypt(byte[] bytesToBeDecrypted, byte[] passwordBytes, byte[] IVBytes)
             {
-                using (RijndaelManaged AES = new RijndaelManaged())
+                byte[] decryptedBytes = null;
+
+                // Set your salt here, change it to meet your flavor:
+                // The salt bytes must be at least 8 bytes.
+                //byte[] saltBytes = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
+
+                using (MemoryStream ms = new MemoryStream())
                 {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-
-                    AES.Key = passwordBytes;
-                    AES.IV = IVBytes;
-
-                    AES.Mode = CipherMode.CBC;
-
-                    using (var cs = new CryptoStream(ms, AES.CreateDecryptor(), CryptoStreamMode.Write))
+                    using (RijndaelManaged AES = new RijndaelManaged())
                     {
-                        cs.Write(bytesToBeDecrypted, 0, bytesToBeDecrypted.Length);
-                        cs.Close();
+                        AES.KeySize = 256;
+                        AES.BlockSize = 128;
+
+                        AES.Key = passwordBytes;
+                        AES.IV = IVBytes;
+
+                        AES.Mode = CipherMode.CBC;
+
+                        FileStream fsInput = new FileStream(file, FileMode.Open, FileAccess.Read);
+
+                        FileStream fsEncrypted = new FileStream(encrypted, FileMode.Create, FileAccess.Write);
+
+                        ICryptoTransform encryptor = AES.CreateEncryptor();
+
+                        CryptoStream cryptostream = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write);
+                        long length = fsInput.Length / 10;
+                        byte[] bytearrayinput = new byte[length];
+                        int count = 1;
+                        while (count != 0)
+                        {
+                            count = fsInput.Read(bytearrayinput, 0, bytearrayinput.Length);
+                            cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
+                        }
+
+
+                        cryptostream.Close();
+                        fsInput.Close();
+                        fsEncrypted.Close();
                     }
-                    decryptedBytes = ms.ToArray();
                 }
+
+                return decryptedBytes;
             }
-
-            return decryptedBytes;
-        }
-
+            */
         public static string EncryptFile(int userid, string file, string encrypted)
         {
             string key = SQL.getKey(userid);
@@ -85,52 +100,115 @@ namespace FileTransfer
 
             byte[] passwordBytes = Convert.FromBase64String(pwd);
 
-
-
-            using (MemoryStream ms = new MemoryStream())
+            using (RijndaelManaged AES = new RijndaelManaged())
             {
-                using (RijndaelManaged AES = new RijndaelManaged())
+                AES.KeySize = 256;
+                AES.BlockSize = 128;
+
+                AES.Key = passwordBytes;
+                AES.GenerateIV();
+
+                AES.Mode = CipherMode.CBC;
+
+                FileStream fsInput = new FileStream(file, FileMode.Open, FileAccess.Read);
+
+                FileStream fsEncrypted = new FileStream(encrypted, FileMode.Create, FileAccess.Write);
+
+                ICryptoTransform encryptor = AES.CreateEncryptor();
+
+                CryptoStream cryptostream = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write);
+                /*
+                int data;
+                while ((data = fsInput.ReadByte()) != -1)
+                    cryptostream.WriteByte((byte)data);
+                */
+                
+                int bytesread;
+                byte[] buffer = new byte[16384];
+                while (true)
                 {
-                    AES.KeySize = 256;
-                    AES.BlockSize = 128;
-
-                    AES.Key = passwordBytes;
-                    AES.GenerateIV();
-
-                    AES.Mode = CipherMode.CBC;
-
-                    FileStream fsInput = new FileStream(file, FileMode.Open, FileAccess.Read);
-
-                    FileStream fsEncrypted = new FileStream(encrypted, FileMode.Create, FileAccess.Write);
-
-                    ICryptoTransform encryptor = AES.CreateEncryptor();
-
-                    CryptoStream cryptostream = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write);
-
-                    byte[] bytearrayinput = new byte[fsInput.Length];
-                    fsInput.Read(bytearrayinput, 0, bytearrayinput.Length);
-                    cryptostream.Write(bytearrayinput, 0, bytearrayinput.Length);
-                    cryptostream.Close();
-                    fsInput.Close();
-                    fsEncrypted.Close();
-
-                    return Convert.ToBase64String(AES.IV);
-
+                    bytesread = fsInput.Read(buffer, 0, 16384);
+                    if (bytesread == 0)
+                        break;
+                    cryptostream.Write(buffer, 0, bytesread);
                 }
-            }
-        }
-        
+                
+                
+                cryptostream.Close();
+                fsInput.Close();
+                fsEncrypted.Close();
+                return Convert.ToBase64String(AES.IV);
 
-        public static void DecryptFile(int userid, string file, string decrypted, string IV)
+            }
+
+        }
+
+
+        public static void DecryptFile(int userid, string temppath, string dest, string IV)
         {
             byte[] IVBytes = Convert.FromBase64String(IV);
             string key = SQL.getKey(userid);
             string pwd = DecryptKey(key);
-            byte[] bytesToBeDecrypted = File.ReadAllBytes(file);
             byte[] passwordBytes = Convert.FromBase64String(pwd);
-            byte[] bytesDecrypted = AES_Decrypt(bytesToBeDecrypted, passwordBytes, IVBytes);
-            File.WriteAllBytes(decrypted, bytesDecrypted);
+
+            using (RijndaelManaged AES = new RijndaelManaged())
+            {
+                AES.KeySize = 256;
+                AES.BlockSize = 128;
+
+                AES.Key = passwordBytes;
+                AES.IV = IVBytes;
+
+                AES.Mode = CipherMode.CBC;
+
+                ICryptoTransform decryptor = AES.CreateDecryptor();
+                FileStream fsInput = new FileStream(temppath, FileMode.Open, FileAccess.Read);
+                FileStream fsOutput = new FileStream(dest, FileMode.Create, FileAccess.Write);
+                CryptoStream cryptostream = new CryptoStream(fsInput, decryptor, CryptoStreamMode.Read);
+                /*
+                int data;
+                while ((data = cryptostream.ReadByte()) != -1)
+                    fsOutput.WriteByte((byte)data);
+                */
+
+                
+                
+                int read;
+                byte[] buffer = new byte[16384];
+                while (true)
+                {
+                    read = cryptostream.Read(buffer, 0, 16384);
+                    if (read == 0)
+                        break;
+                    fsOutput.Write(buffer, 0, read);
+                }
+                
+                cryptostream.Close();
+                fsInput.Close();
+                fsOutput.Close();
+            }
+
         }
+        /*
+         * 
+         FileStream fsread = new FileStream(sInputFilename, 
+            FileMode.Open, 
+            FileAccess.Read);
+         //Create a DES decryptor from the DES instance.
+         ICryptoTransform desdecrypt = DES.CreateDecryptor();
+         //Create crypto stream set to read and do a 
+         //DES decryption transform on incoming bytes.
+         CryptoStream cryptostreamDecr = new CryptoStream(fsread, 
+            desdecrypt,
+            CryptoStreamMode.Read);
+         //Print the contents of the decrypted file.
+         StreamWriter fsDecrypted = new StreamWriter(sOutputFilename);
+         fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
+         fsDecrypted.Flush();
+         fsDecrypted.Close();
+
+
+           */
 
 
         //RSA
