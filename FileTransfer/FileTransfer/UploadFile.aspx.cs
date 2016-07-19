@@ -38,18 +38,18 @@ namespace Testing
             try
             {
                 var clam = new ClamClient("localhost", 3310);
+                int userid = SQL.getUserID(Username.Text);
                 HttpFileCollection uploadedFiles = Request.Files;
                 for (int i = 0; i < uploadedFiles.Count; i++)
                 {
                     HttpPostedFile userPostedFile = uploadedFiles[i];
 
                     if (userPostedFile.ContentLength > 0)
-                    {
-                        int userid = SQL.getUserID(Username.Text);
+                    {   
                         string fileName = Path.GetFileName(userPostedFile.FileName);
                         string path = dirs.Peek().ToString() + "\\" + fileName;
                         string dest = Server.MapPath("~/temp/") + fileName;
-                        FileUpload1.PostedFile.SaveAs(dest);
+                        userPostedFile.SaveAs(dest);
                         var scanResult = clam.ScanFileOnServer(dest);
                         if (scanResult.Result == ClamScanResults.Clean)
                         {
