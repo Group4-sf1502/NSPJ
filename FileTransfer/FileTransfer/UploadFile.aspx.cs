@@ -532,6 +532,25 @@ namespace Testing
             if (e.Row.RowType == DataControlRowType.DataRow)
             {
                 e.Row.CssClass = "normal";
+                if (e.Row.Cells[1].Text.Substring(0,1).Equals("/"))
+                {
+                    Image hello = e.Row.FindControl("image") as Image;
+                    hello.ImageUrl = "images/folder.png";
+                    hello.BorderStyle = BorderStyle.None;
+
+                }
+
+                else if (e.Row.Cells[1].Text.Substring(0,2).Equals(".."))
+                {
+                    Image hello = e.Row.FindControl("image") as Image;
+                }
+
+                else
+                {
+                    Image hello = e.Row.FindControl("image") as Image;
+                    hello.ImageUrl = "images/document.png";
+                    hello.BorderStyle = BorderStyle.None;
+                }
             }
         }
 
@@ -544,7 +563,7 @@ namespace Testing
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
+                    if ((r.Cells[1].Text.Substring(0, 1).Equals(condition)) || (r.Cells[1].Text.Substring(0, 2).Equals(condition2)))
                     {
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
@@ -558,7 +577,7 @@ namespace Testing
             {
                 if (r.RowType == DataControlRowType.DataRow)
                 {
-                    if ((r.Cells[0].Text.Substring(0, 1).Equals(condition)) || (r.Cells[0].Text.Substring(0, 2).Equals(condition2)))
+                    if ((r.Cells[1].Text.Substring(0, 1).Equals(condition)) || (r.Cells[1].Text.Substring(0, 2).Equals(condition2)))
                     {
                         r.Attributes["onmouseover"] = "this.style.cursor='pointer';";
                         r.ToolTip = "Click to select row";
@@ -575,7 +594,7 @@ namespace Testing
         {
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string filename = grv.Cells[0].Text;
+            string filename = grv.Cells[1].Text;
             return filename;
         }
 
@@ -583,7 +602,7 @@ namespace Testing
         {
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string user = grv.Cells[1].Text;
+            string user = grv.Cells[2].Text;
             return user;
         }
 
@@ -592,7 +611,7 @@ namespace Testing
         {
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string filename = grv.Cells[0].Text;
+            string filename = grv.Cells[1].Text;
             string user = Username.Text;
             string filePath = SQL.getFilePaths(filename, user);
             return filePath;
@@ -602,8 +621,8 @@ namespace Testing
         {
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string filename = grv.Cells[0].Text;
-            string username = grv.Cells[1].Text;
+            string filename = grv.Cells[1].Text;
+            string username = grv.Cells[2].Text;
             string filePath = SQL.getFilePaths(filename, username);
             return filePath;
         }
@@ -618,7 +637,7 @@ namespace Testing
             {
                 if (row.RowIndex == GridView1.SelectedIndex)
                 {
-                    if (row.Cells[0].Text.Equals(".."))
+                    if (row.Cells[1].Text.Equals(".."))
                     {
                         dirs.Pop();
                         path = dirs.Peek().ToString();
@@ -640,7 +659,7 @@ namespace Testing
 
                     else
                     {
-                        foldername = row.Cells[0].Text.Substring(1, row.Cells[0].Text.Length - 2);
+                        foldername = row.Cells[1].Text.Substring(1, row.Cells[1].Text.Length - 2);
                         path = dirs.Peek().ToString() + "\\" + foldername;
                         dt = fillTable(path);
                         dirs.Push(path);
@@ -665,7 +684,7 @@ namespace Testing
             {
                 if (row.RowIndex == GridView2.SelectedIndex)
                 {
-                    if (row.Cells[0].Text.Equals(".."))
+                    if (row.Cells[1].Text.Equals(".."))
                     {
                         shareddir.Pop();
                         if (shareddir.Count == 0)
@@ -677,7 +696,7 @@ namespace Testing
                         else
                         {
                             path = shareddir.Peek().ToString();
-                            dt = fillSharedTable(path, row.Cells[1].Text);
+                            dt = fillSharedTable(path, row.Cells[2].Text);
                         }
 
                     }
@@ -686,19 +705,19 @@ namespace Testing
                     {
                         if (shareddir.Count == 0)
                         {
-                            string username = row.Cells[1].Text;
-                            foldername = row.Cells[0].Text;
+                            string username = row.Cells[2].Text;
+                            foldername = row.Cells[1].Text;
                             path = SQL.getSharedFolderPath(foldername, username);
                             shareddir.Push(path);
-                            dt = fillSharedTable(path, row.Cells[1].Text);
+                            dt = fillSharedTable(path, row.Cells[2].Text);
 
                         }
 
                         else
                         {
-                            path = shareddir.Peek().ToString() + "\\" + row.Cells[0].Text.ToString().Substring(1, row.Cells[0].Text.ToString().Length - 2);
+                            path = shareddir.Peek().ToString() + "\\" + row.Cells[1].Text.ToString().Substring(1, row.Cells[1].Text.ToString().Length - 2);
                             shareddir.Push(path);
-                            dt = fillSharedTable(path, row.Cells[1].Text);
+                            dt = fillSharedTable(path, row.Cells[2].Text);
 
                         }
                     }
@@ -896,7 +915,7 @@ namespace Testing
             ModalPopupExtender3.Show();
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
-            string name = grv.Cells[0].Text;
+            string name = grv.Cells[1].Text;
             Label3.Text += name;
             dirlist.Nodes.Clear();
             var rootDirectoryInfo = new DirectoryInfo(Server.MapPath("~/App_Data/") + Username.Text);
