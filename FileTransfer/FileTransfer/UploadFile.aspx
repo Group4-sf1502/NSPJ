@@ -41,6 +41,7 @@
             display: none;
         }
     </style>
+  
     <h2>Upload a file</h2>
     <p>
         &nbsp;
@@ -60,15 +61,16 @@
 
 
     <p>
-
-        &nbsp;<asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="85px" />
-
-    </p>
-
-    <p>
         <asp:Button ID="Button3" runat="server" OnClick="ViewMyFiles" Text="My Files" />
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
      <asp:Button ID="Button4" runat="server" OnClick="ViewSharedFiles" Text="Files shared with me" />
+    </p>
+    <p>
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; <asp:Button ID="addFolder" runat="server" OnClick="addFolder_Click" Text="Add Folder" Width="85px" />
+
+    &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <asp:Label ID="Label5" runat="server"></asp:Label>
+
     </p>
 <!-- <asp:TemplateField>
                         <ItemTemplate>
@@ -81,11 +83,14 @@
                         </HeaderTemplate>
                     </asp:TemplateField> -->
 
+
+
     <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
             <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="1250px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
                 <Columns>
                     <asp:BoundField DataField="Name" HeaderText="File Name"  />
+                    <asp:BoundField DataField="Size" HeaderText="Size" />
                     <asp:BoundField DataField="Last Modified" HeaderText="Last Modified"  />
                     <asp:TemplateField>
                         <ItemTemplate>
@@ -124,7 +129,7 @@
             </asp:GridView>
         </asp:View>
     </asp:MultiView>
-
+    
     <asp:Button ID="show" Text="Popup" runat="server" OnClick="showpopup" Style="display: none" />
     <asp:Panel ID="panel1" runat="server" CssClass="popup" Height="300px" >
         <br />

@@ -23,6 +23,7 @@ namespace Testing
 
         protected void Page_Load(object sender, EventArgs e)
         {
+
             GridView1.RowStyle.Height = 30;
             GridView2.RowStyle.Height = 30;
             if (!IsPostBack)
@@ -38,7 +39,8 @@ namespace Testing
             try
             {
                 var clam = new ClamClient("localhost", 3310);
-                int userid = SQL.getUserID(Username.Text);
+                string username = Username.Text;
+                int remainingstorage = SQL.getStorageSize(username) - SQL.getUsedSpace(username);
                 HttpFileCollection uploadedFiles = Request.Files;
                 for (int i = 0; i < uploadedFiles.Count; i++)
                 {
@@ -53,14 +55,26 @@ namespace Testing
                         var scanResult = clam.ScanFileOnServer(dest);
                         if (scanResult.Result == ClamScanResults.Clean)
                         {
-                            string IV = Security.EncryptFile(userid, dest, path);
-                            SQL.insertFile(fileName, userPostedFile.ContentLength, path, userid, IV);
+                            if (userPostedFile.ContentLength < remainingstorage)
+                            {
+                                string IV = Security.EncryptFile(username, dest, path);
+                                SQL.insertFile(fileName, userPostedFile.ContentLength, path, username, IV);
+                                int space = (int)new FileInfo(path).Length;
+                                SQL.addUsedspace(space, username);
+                                remainingstorage -= space;
+                            }
+                            else
+                            {
+                                Response.Write("File is too big!");
+                            }
+
                         }
                         else
                         {
                             File.Delete(path);
                             Response.Write(fileName + " is malicious!");
                         }
+                        File.Delete(dest);
                     }
                 }
 
@@ -94,19 +108,20 @@ namespace Testing
             try
             {
                 dirs.Clear();
-                int userid = SQL.getUserID(Username.Text);
+                //int userid = SQL.getUserID(Username.Text);
+                string username = Username.Text;
 
                 //My files
 
-                string user = Server.MapPath("~/App_Data/") + Username.Text;
+                string user = Server.MapPath("~/App_Data/") + username;
                 dirs.Push(user);
                 DataTable dt = fillMainTable(user);
                 GridView1.DataSource = dt;
                 GridView1.DataBind();
                 MultiView.ActiveViewIndex = 0;
 
-
-
+                DirectoryInfo di = new DirectoryInfo(user);
+                List<FileInfo> filelist = new List<FileInfo>(di.GetFiles());
 
 
                 // Folders shared with me
@@ -118,8 +133,8 @@ namespace Testing
                 column2.DataType = Type.GetType("System.String");
                 dt2.Columns.Add(column);
                 dt2.Columns.Add(column2);
-                List<string> folders = SQL.getSharedFolderPath(userid);
-                List<string> Usernames = SQL.getSharedFolderUser(userid);
+                List<string> folders = SQL.getSharedFolderPath(username);
+                List<string> Usernames = SQL.getSharedFolderUser(username);
                 for (int i = 0; i < folders.Count(); i++)
                 {
                     row = dt2.NewRow();
@@ -130,10 +145,10 @@ namespace Testing
 
 
                 // Files
-                List<int> fileids = SQL.getShareFileID(userid);
+                List<int> fileids = SQL.getShareFileID(username);
 
                 List<String> files = SQL.getSharedDataTable(fileids);
-                List<String> usernames = SQL.getShareUser(userid);
+                List<String> usernames = SQL.getShareUser(username);
 
                 for (int i = 0; i < files.Count(); i++)
                 {
@@ -164,7 +179,8 @@ namespace Testing
             {
                 string filename = getname(sender);
                 string filePath = getpath(sender);
-                int userid = SQL.getUserID(Username.Text);
+                string username = Username.Text;
+                //int userid = SQL.getUserID(Username.Text);
 
                 //Test if folder
                 if (filename.Substring(0, 1).Equals("/"))
@@ -191,7 +207,7 @@ namespace Testing
                     foreach (string file_name in filepaths)
                     {
                         IV = SQL.getIV(file_name);
-                        Security.DecryptFile(userid, file_name, dest + file_name.Substring(source.Length), IV);
+                        Security.DecryptFile(username, file_name, dest + file_name.Substring(source.Length), IV);
                     }
                     //Create zip file
                     ZipFile.CreateFromDirectory(mainfolder, zip);
@@ -210,7 +226,7 @@ namespace Testing
                 {
                     string IV = SQL.getIV(filePath);
                     string tempPath = Server.MapPath("~/temp/") + filename;
-                    Security.DecryptFile(userid, filePath, tempPath, IV);
+                    Security.DecryptFile(username, filePath, tempPath, IV);
                     Response.ClearContent();
                     Response.ContentType = ContentType;
                     Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -250,8 +266,8 @@ namespace Testing
                 if (shareddir.Count == 0)
                 {
                     string user = getshareduser(sender);
-                    int userid = SQL.getUserID(user);
-                    source = SQL.getSharedFolderPath(filename, userid);
+                    //int userid = SQL.getUserID(user);
+                    source = SQL.getSharedFolderPath(filename, user);
                     mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
                     dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
                     zip = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2) + ".zip";
@@ -268,14 +284,14 @@ namespace Testing
                     foreach (string file_path in filepaths)
                     {
                         string IV = SQL.getIV(file_path);
-                        Security.DecryptFile(userid, file_path, dest + file_path.Substring(source.Length), IV);
+                        Security.DecryptFile(user, file_path, dest + file_path.Substring(source.Length), IV);
                     }
                 }
                 //Specific shared folders
                 else
                 {
                     string user = getshareduser(sender);
-                    int userid = SQL.getUserID(user);
+                    //int userid = SQL.getUserID(user);
                     source = shareddir.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
                     mainfolder = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
                     dest = mainfolder + "\\" + filename.Substring(1, filename.Length - 2);
@@ -294,7 +310,7 @@ namespace Testing
                     foreach (string file_path in filepaths)
                     {
                         string IV = SQL.getIV(file_path);
-                        Security.DecryptFile(userid, file_path, dest + file_path.Substring(source.Length), IV);
+                        Security.DecryptFile(user, file_path, dest + file_path.Substring(source.Length), IV);
                     }
                 }
 
@@ -316,10 +332,10 @@ namespace Testing
                 string fileName = getname(sender);
                 string filePath = getsharedpath(sender);
                 string user = getshareduser(sender);
-                int userid = SQL.getUserID(user);
+                //int userid = SQL.getUserID(user);
                 string IV = SQL.getIV(filePath);
                 string tempPath = Server.MapPath("~/temp/") + filename;
-                Security.DecryptFile(userid, filePath, tempPath, IV);
+                Security.DecryptFile(user, filePath, tempPath, IV);
                 Response.ClearContent();
                 Response.ContentType = ContentType;
                 Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -335,14 +351,16 @@ namespace Testing
         {
             try
             {
+                string username = Username.Text;
                 string filename = getname(sender);
                 if (filename.Substring(0, 1).Equals("/"))
                 {
                     string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
                     List<string> files = new List<string>(Directory.GetFiles(foldername, "*", SearchOption.AllDirectories));
-                    SQL.deleteFiles(files, SQL.getUserID(Username.Text));
+                    SQL.deleteFiles(files);
                     foreach (string i in files)
                     {
+                        SQL.removeUsedspace((int) new FileInfo(i).Length, username);
                         File.Delete(i);
                     }
                     Directory.Delete(foldername);
@@ -350,6 +368,7 @@ namespace Testing
                 else
                 {
                     string filePath = getpath(sender);
+                    SQL.removeUsedspace((int)new FileInfo(filePath).Length, username);
                     File.Delete(filePath);
                     SQL.deleteFile(filePath);
                 }
@@ -428,19 +447,19 @@ namespace Testing
             string filename = fileName.Text;
             string shareduser = sharedUser.Text;
             string user = Username.Text;
-            int userid = SQL.getUserID(user);
-            int shareduserid = SQL.getUserID(shareduser);
+            //int userid = SQL.getUserID(user);
+            //int shareduserid = SQL.getUserID(shareduser);
 
             if (filename.Substring(0, 1).Equals("/"))
             {
                 string path = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                SQL.insertShareFolder(path, userid, shareduserid, filename);
+                SQL.insertShareFolder(path, user, shareduser, filename);
             }
 
             else
             {
-                int fileid = SQL.getFileID(filename, userid);
-                SQL.insertShareFile(fileid, shareduserid, user);
+                int fileid = SQL.getFileID(filename, user);
+                SQL.insertShareFile(fileid, shareduser, user);
             }
 
         }
@@ -448,12 +467,12 @@ namespace Testing
         protected void RemoveFile(object sender, EventArgs e)
         {
             string filename = getname(sender);
-            int userid = SQL.getUserID(Username.Text);
+            string user = Username.Text;
             if (filename.Substring(0, 1).Equals("/"))
             {
-                int sharinguser = SQL.getUserID(getshareduser(sender));
-                string source = SQL.getSharedFolderPath(filename, sharinguser);
-                SQL.deleteSharedFolder(source, userid);
+                string shareduser = getshareduser(sender);
+                string source = SQL.getSharedFolderPath(filename, shareduser);
+                SQL.deleteSharedFolder(source, user);
             }
             else
             {
@@ -466,7 +485,7 @@ namespace Testing
             DataTable dt;
             if (shareddir.Count == 0)
             {
-                dt = fillMainSharedTable(userid);
+                dt = fillMainSharedTable(user);
             }
             else
             {
@@ -485,16 +504,16 @@ namespace Testing
             if (fileName.Text.Substring(0, 1).Equals("/"))
             {
                 string sharedwith = getname(sender);
-                int shareduser = SQL.getUserID(sharedwith);
+                //int shareduser = SQL.getUserID(sharedwith);
                 string folderpath = dirs.Peek().ToString() + "\\" + fileName.Text.Substring(1, fileName.Text.Length - 2);
-                SQL.deleteSharedFolder(folderpath, shareduser);
+                SQL.deleteSharedFolder(folderpath, sharedwith);
                 dt = SQL.retrieveSharedFolders(folderpath);
                 sharedList.DataSource = dt;
                 sharedList.DataBind();
             }
             else
             {
-                int fileid = SQL.getFileID(fileName.Text, SQL.getUserID(Username.Text));
+                int fileid = SQL.getFileID(fileName.Text, Username.Text);
                 SQL.removeSharedFile(fileid);
                 dt = SQL.getSharedUsers(fileid);
                 sharedList.DataSource = dt;
@@ -574,8 +593,8 @@ namespace Testing
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
             string filename = grv.Cells[0].Text;
-            int userid = SQL.getUserID(Username.Text);
-            string filePath = SQL.getFilePaths(filename, userid);
+            string user = Username.Text;
+            string filePath = SQL.getFilePaths(filename, user);
             return filePath;
         }
 
@@ -584,8 +603,8 @@ namespace Testing
             LinkButton lb = (LinkButton)sender;
             GridViewRow grv = (GridViewRow)lb.NamingContainer;
             string filename = grv.Cells[0].Text;
-            int userid = SQL.getUserID(grv.Cells[1].Text);
-            string filePath = SQL.getFilePaths(filename, userid);
+            string username = grv.Cells[1].Text;
+            string filePath = SQL.getFilePaths(filename, username);
             return filePath;
         }
 
@@ -651,8 +670,8 @@ namespace Testing
                         shareddir.Pop();
                         if (shareddir.Count == 0)
                         {
-                            int userid = SQL.getUserID(Username.Text);
-                            dt = fillMainSharedTable(userid);
+                            string username = Username.Text;
+                            dt = fillMainSharedTable(username);
                         }
 
                         else
@@ -667,9 +686,9 @@ namespace Testing
                     {
                         if (shareddir.Count == 0)
                         {
-                            int userid = SQL.getUserID(row.Cells[1].Text);
+                            string username = row.Cells[1].Text;
                             foldername = row.Cells[0].Text;
-                            path = SQL.getSharedFolderPath(foldername, userid);
+                            path = SQL.getSharedFolderPath(foldername, username);
                             shareddir.Push(path);
                             dt = fillSharedTable(path, row.Cells[1].Text);
 
@@ -694,7 +713,7 @@ namespace Testing
 
         }
 
-        protected DataTable fillMainSharedTable(int userid)
+        protected DataTable fillMainSharedTable(string username)
         {
             DataTable dt2 = new DataTable();
             DataRow row;
@@ -704,8 +723,8 @@ namespace Testing
             column2.DataType = Type.GetType("System.String");
             dt2.Columns.Add(column);
             dt2.Columns.Add(column2);
-            List<string> folders = SQL.getSharedFolderPath(userid);
-            List<string> Usernames = SQL.getSharedFolderUser(userid);
+            List<string> folders = SQL.getSharedFolderPath(username);
+            List<string> Usernames = SQL.getSharedFolderUser(username);
             for (int i = 0; i < folders.Count(); i++)
             {
                 row = dt2.NewRow();
@@ -716,10 +735,10 @@ namespace Testing
 
 
             // Files
-            List<int> fileids = SQL.getShareFileID(userid);
+            List<int> fileids = SQL.getShareFileID(username);
 
             List<String> files = SQL.getSharedDataTable(fileids);
-            List<String> usernames = SQL.getShareUser(userid);
+            List<String> usernames = SQL.getShareUser(username);
 
             for (int i = 0; i < files.Count(); i++)
             {
@@ -783,13 +802,17 @@ namespace Testing
             DataRow row;
             DataColumn column = new DataColumn("Name");
             column.DataType = Type.GetType("System.String");
+            DataColumn column3 = new DataColumn("Size");
+            column3.DataType = Type.GetType("System.String");
             DataColumn column2 = new DataColumn("Last modified");
             column2.DataType = Type.GetType("System.String");
             dt.Columns.Add(column);
             dt.Columns.Add(column2);
+            dt.Columns.Add(column3);
 
             row = dt.NewRow();
             row["Name"] = back;
+            row["Size"] = "--";
             row["Last modified"] = "--";
             dt.Rows.Add(row);
 
@@ -797,20 +820,22 @@ namespace Testing
             {
                 row = dt.NewRow();
                 row["Name"] = "/" + Path.GetFileName(dir[i]) + "/";
+                row["Size"] = "--";
                 row["Last Modified"] = "--";
                 dt.Rows.Add(row);
             }
 
             for (int i = 0; i < files.Length; i++)
             {
-                row = dt.NewRow();
+                string length = size(new FileInfo(files[i])); row = dt.NewRow();
                 row["Name"] = Path.GetFileName(files[i]);
+                row["Size"] = length;
                 row["Last Modified"] = File.GetLastWriteTime(files[i]);
                 dt.Rows.Add(row);
             }
 
 
-
+            updatespace();
             return dt;
         }
 
@@ -822,10 +847,13 @@ namespace Testing
             DataRow row;
             DataColumn column = new DataColumn("Name");
             column.DataType = Type.GetType("System.String");
+            DataColumn column3 = new DataColumn("Size");
+            column3.DataType = Type.GetType("System.String");
             DataColumn column2 = new DataColumn("Last modified");
             column2.DataType = Type.GetType("System.String");
             dt.Columns.Add(column);
             dt.Columns.Add(column2);
+            dt.Columns.Add(column3);
 
             for (int i = 0; i < dir.Count; i++)
             {
@@ -837,13 +865,29 @@ namespace Testing
 
             for (int i = 0; i < files.Length; i++)
             {
+                string length = size(new FileInfo(files[i]));
                 row = dt.NewRow();
                 row["Name"] = Path.GetFileName(files[i]);
+                row["Size"] = length;
                 row["Last Modified"] = File.GetLastWriteTime(files[i]);
                 dt.Rows.Add(row);
             }
-
+            updatespace();
             return dt;
+        }
+
+        private string size(FileInfo fInf)
+        {
+            string sLen = fInf.Length.ToString();
+            if (fInf.Length >= (1 << 30))
+                sLen = string.Format("{0}GB", fInf.Length >> 30);
+            else
+            if (fInf.Length >= (1 << 20))
+                sLen = string.Format("{0}MB", fInf.Length >> 20);
+            else
+            if (fInf.Length >= (1 << 10))
+                sLen = string.Format("{0}KB", fInf.Length >> 10);
+            return sLen;
         }
 
         protected void fillTree(object sender, EventArgs e)
@@ -908,13 +952,14 @@ namespace Testing
 
                 List<string> filepaths = new List<string>(Directory.GetFiles(path, "*", SearchOption.AllDirectories));
                 List<string> filenames = new List<string>();
-                int userid = SQL.getUserID(Username.Text);
+                //int userid = SQL.getUserID(Username.Text);
+                string username = Username.Text;
                 foreach (string i in filepaths)
                 {
                     filenames.Add(Path.GetFileName(i));
                 }
 
-                SQL.moveFolder(filenames, userid, filepaths);
+                SQL.moveFolder(filenames, username, filepaths);
 
             }
 
@@ -922,8 +967,8 @@ namespace Testing
             else
             {
 
-                int id = SQL.getFileID(Label3.Text, SQL.getUserID(Username.Text));
-                string filepath = SQL.getFilePaths(Label3.Text, SQL.getUserID(Username.Text));
+                int id = SQL.getFileID(Label3.Text, Username.Text);
+                string filepath = SQL.getFilePaths(Label3.Text, Username.Text);
                 string path = Server.MapPath("~/App_data/");
                 List<TreeNode> tree = new List<TreeNode>();
                 TreeNode node = dirlist.SelectedNode;
@@ -973,7 +1018,15 @@ namespace Testing
         {
             string folder = foldername.Text;
             string path = dirs.Peek().ToString() + "\\" + folder;
-            Directory.CreateDirectory(path);
+            if (Directory.Exists(path))
+            {
+                path += " -Copy";
+                Directory.CreateDirectory(path);
+            }
+            else
+            {
+                Directory.CreateDirectory(path);
+            }
             DataTable dt;
             if (dirs.Count == 1)
             {
@@ -1084,6 +1137,12 @@ namespace Testing
     } 
     */
 
+        }
+        private void updatespace()
+        {
+            string username = Username.Text;
+            double space = (double)SQL.getUsedSpace(username) / (double)SQL.getStorageSize(username) * 100.0;
+            Label5.Text = "" + Math.Round(space, 2) + "%";
         }
     }
 }

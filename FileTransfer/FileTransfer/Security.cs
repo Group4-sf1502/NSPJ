@@ -93,9 +93,9 @@ namespace FileTransfer
                 return decryptedBytes;
             }
             */
-        public static string EncryptFile(int userid, string file, string encrypted)
+        public static string EncryptFile(string username, string file, string encrypted)
         {
-            string key = SQL.getKey(userid);
+            string key = SQL.getKey(username);
             string pwd = DecryptKey(key);
 
             byte[] passwordBytes = Convert.FromBase64String(pwd);
@@ -139,10 +139,10 @@ namespace FileTransfer
         }
 
 
-        public static void DecryptFile(int userid, string temppath, string dest, string IV)
+        public static void DecryptFile(string username, string temppath, string dest, string IV)
         {
             byte[] IVBytes = Convert.FromBase64String(IV);
-            string key = SQL.getKey(userid);
+            string key = SQL.getKey(username);
             string pwd = DecryptKey(key);
             byte[] passwordBytes = Convert.FromBase64String(pwd);
 
@@ -184,26 +184,7 @@ namespace FileTransfer
             }
 
         }
-        /*
-         * 
-         FileStream fsread = new FileStream(sInputFilename, 
-            FileMode.Open, 
-            FileAccess.Read);
-         //Create a DES decryptor from the DES instance.
-         ICryptoTransform desdecrypt = DES.CreateDecryptor();
-         //Create crypto stream set to read and do a 
-         //DES decryption transform on incoming bytes.
-         CryptoStream cryptostreamDecr = new CryptoStream(fsread, 
-            desdecrypt,
-            CryptoStreamMode.Read);
-         //Print the contents of the decrypted file.
-         StreamWriter fsDecrypted = new StreamWriter(sOutputFilename);
-         fsDecrypted.Write(new StreamReader(cryptostreamDecr).ReadToEnd());
-         fsDecrypted.Flush();
-         fsDecrypted.Close();
 
-
-           */
 
 
         //RSA
