@@ -30,8 +30,72 @@ namespace Testing
             {
                 dirs.Clear();
                 shareddir.Clear();
-            }
 
+                try
+                {
+                    //int userid = SQL.getUserID(Username.Text);
+                    string username = "Daryl";
+
+                    //My files
+
+                    string user = Server.MapPath("~/App_Data/") + username;
+                    dirs.Push(user);
+                    DataTable dt = fillMainTable(user);
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                    MultiView.ActiveViewIndex = 0;
+
+                    DirectoryInfo di = new DirectoryInfo(user);
+                    List<FileInfo> filelist = new List<FileInfo>(di.GetFiles());
+
+
+                    // Folders shared with me
+                    DataTable dt2 = new DataTable();
+                    DataRow row;
+                    DataColumn column = new DataColumn("Name");
+                    column.DataType = Type.GetType("System.String");
+                    DataColumn column2 = new DataColumn("Username");
+                    column2.DataType = Type.GetType("System.String");
+                    dt2.Columns.Add(column);
+                    dt2.Columns.Add(column2);
+                    List<string> folders = SQL.getSharedFolderPath(username);
+                    List<string> Usernames = SQL.getSharedFolderUser(username);
+                    for (int i = 0; i < folders.Count(); i++)
+                    {
+                        row = dt2.NewRow();
+                        row["Name"] = "/" + Path.GetFileName(folders[i]) + "/";
+                        row["Username"] = Usernames[i];
+                        dt2.Rows.Add(row);
+                    }
+
+
+                    // Files
+                    List<int> fileids = SQL.getShareFileID(username);
+
+                    List<String> files = SQL.getSharedDataTable(fileids);
+                    List<String> usernames = SQL.getShareUser(username);
+
+                    for (int i = 0; i < files.Count(); i++)
+                    {
+                        row = dt2.NewRow();
+                        row["Name"] = files[i];
+                        row["Username"] = usernames[i];
+                        dt2.Rows.Add(row);
+                    }
+
+
+                    GridView2.DataSource = dt2;
+                    GridView2.DataBind();
+                }
+                catch (FileNotFoundException exc)
+                {
+                    Response.Write("File not found!");
+                }
+                catch (DirectoryNotFoundException exc2)
+                {
+                    Response.Write("Folder not found");
+                }
+            }
         }
 
         protected void upload(object sender, EventArgs e)
@@ -360,7 +424,7 @@ namespace Testing
                     SQL.deleteFiles(files);
                     foreach (string i in files)
                     {
-                        SQL.removeUsedspace((int) new FileInfo(i).Length, username);
+                        SQL.removeUsedspace((int)new FileInfo(i).Length, username);
                         File.Delete(i);
                     }
                     Directory.Delete(foldername);
@@ -521,7 +585,7 @@ namespace Testing
             }
         }
 
-        //Apply CSS style
+        //Apply CSS style and icons
         protected void rowdatabind(object sender, GridViewRowEventArgs e)
         {
             if (e.Row.RowType == DataControlRowType.Header)
@@ -532,23 +596,72 @@ namespace Testing
             if (e.Row.RowType == DataControlRowType.DataRow)
             {
                 e.Row.CssClass = "normal";
-                if (e.Row.Cells[1].Text.Substring(0,1).Equals("/"))
+                if (e.Row.Cells[1].Text.Substring(0, 1).Equals("/"))
                 {
                     Image hello = e.Row.FindControl("image") as Image;
-                    hello.ImageUrl = "images/folder.png";
-                    hello.BorderStyle = BorderStyle.None;
+                    hello.ImageUrl = "images/folders.png";
 
                 }
 
-                else if (e.Row.Cells[1].Text.Substring(0,2).Equals(".."))
+                else if (e.Row.Cells[1].Text.Substring(0, 2).Equals(".."))
                 {
                     Image hello = e.Row.FindControl("image") as Image;
+                    hello.ImageUrl = "images/exit.png";
                 }
 
                 else
                 {
+                    string ext = e.Row.Cells[1].Text.Substring(e.Row.Cells[1].Text.IndexOf(".") + 1);
                     Image hello = e.Row.FindControl("image") as Image;
-                    hello.ImageUrl = "images/document.png";
+                    switch (ext)
+                    {
+                        //Images
+                        case "jpeg":
+                        case "jpg":
+                        case "png":
+                        case "bmp":
+                            hello.ImageUrl = "images/img.png";
+                            break;
+                        //Videos
+                        case "mp4":
+                        case "avi":
+                        case "wmv":
+                        case "flv":
+                            hello.ImageUrl = "images/video.png";
+                            break;
+
+                        //Audio
+                        case "mp3":
+                        case "wav":
+                        case "wma":
+                            hello.ImageUrl = "images/audio.png";
+                            break;
+
+                        //Text
+                        case "log":
+                        case "txt":
+                            hello.ImageUrl = "images/txt.png";
+                            break;
+
+                        case "pdf":
+                            hello.ImageUrl = "images/pdf.png";
+                            break;
+                        case "zip":
+                            hello.ImageUrl = "images/zip.png";
+                            break;
+                        case "docx":
+                            hello.ImageUrl = "images/word.png";
+                            break;
+                        case "pptx":
+                            hello.ImageUrl = "images/ppt.png";
+                            break;
+                        case "xlsx":
+                            hello.ImageUrl = "images/excel.png";
+                            break;
+                        default:
+                            hello.ImageUrl = "images/file.png";
+                            break;
+                    }
                     hello.BorderStyle = BorderStyle.None;
                 }
             }
@@ -1059,109 +1172,114 @@ namespace Testing
                 GridView1.DataSource = dt;
                 GridView1.DataBind();
             }
-
-
-            /*
-             * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = connection;
-                    cmd.CommandText = "UPDATE [User] SET keys = '" + encryptedkey + "' WHERE userID = 11;";
-                    connection.Open();
-                    cmd.ExecuteNonQuery();
-                }
-             * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
-                {
-                    SqlCommand cmd = new SqlCommand();
-                    cmd.Connection = connection;
-                    cmd.CommandText = "SELECT keys FROM [User] WHERE userID = 11";
-                    connection.Open();
-                    SqlDataReader rd = cmd.ExecuteReader();
-                    rd.Read();
-                    encryptedkey = rd.GetString(0);
-                    string decryptedkey = Security.DecryptKey(encryptedkey);
-                    Username.Text += decryptedkey;
-                }
-             * 
-             * 
-             * iZ8duv2/Zq1jqPGbFwbv4NZ/QLLljQCIhQ8h1ADbDVI=
-        NPNxRsrC/DXyAji7fXAEAyR9O5JP6AxjdCQHOTWrq3AzXTshbZ2CwCcyJ3MF2WGHTU1jcYpQAtSRnDaAi0CzPuYs+1KhVUY2e3yBOQ7Rq4co1Jq6PwfsFpXoWC4P3I5MV+5bo8cOFUqnZbwdbkMUeJehyzSVk/6a1BtJfya5f/M=
-
-
-    LMnSA/3T3ONADqTxWHk53ZwvvA0tROwCPAnTyq4zJxY=
-    NrwTNW1bzPT5ZqeUkniw1y38Z4sdmNSklQV3tknhnqLxg1a+547iNtxpNPweDGDEl5x1PV19PRdGLDWPMxUVfVWBnotyVZBkqb1zhZnojD77Pu2ym4mWdGO0w+Hg7G1UjAM//f3RkKBAAU2KRVqZE4GYTvnz0i/yrm81FsRQk8w=
-
-
-    qFUMGMVgTJQDYwQ+MlmfavoI5JsjPcmGuWdEHO7kJhY=
-    GvGLWL+TG0DY8DlZdybqT/gl1nllbtMOdZ56tlz0spIo5WWF9PmLby1PtQ1Uw7PyqsbrjpS7A2/w6zeVyGqLTJKLS8IPycR0ykc7dBPcAutC45ylbQbVaT5vQqiswfyIulvkKLCT9hV1UxFT0Z44NAF+H2j+XQ2Jupvw4i+qmsM=
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-             * 
-
-
-            /*
-    protected void Button8_Click(object sender, EventArgs e)
-    {
-    TextBox1.Text += "Helo";
-    var clam = new ClamClient("localhost", 3310);
-    var scanResult = clam.ScanFileOnServer(@"C:\Users\daryl\Desktop\z.com");
-
-    switch (scanResult.Result)
-    {
-    case ClamScanResults.Clean:
-    Response.Write("The file is clean!");
-    break;
-    case ClamScanResults.VirusDetected:
-    Response.Write("Virus Found!");
-    break;
-    case ClamScanResults.Error:
-    Response.Write("Error occurred");
-    break;
-    }
-    }*/
-            /*
-    private string changedirection(SortDirection e)
-    {
-       string newdirection = "";
-       switch (e)
-       {
-           case SortDirection.Ascending: newdirection = "DESC";break;
-           case SortDirection.Descending: newdirection = "ASC";break;
-       }
-       return newdirection;
-    }
-
-    protected void sortview(object sender, GridViewSortEventArgs e)
-    {
-       Response.Write("Sort expression: " + e.SortExpression);
-       Response.Write("Sort direction: " + e.SortDirection);
-
-       DataTable dt = GridView1.DataSource as DataTable;
-
-       if (dt != null)
-       {
-           DataView dv = new DataView(dt);
-           dv.Sort = e.SortExpression + " " + "DESC";
-
-           GridView1.DataSource = dv;
-           GridView1.DataBind();
-       }
-    } 
-    */
-
         }
+
         private void updatespace()
         {
             string username = Username.Text;
             double space = (double)SQL.getUsedSpace(username) / (double)SQL.getStorageSize(username) * 100.0;
             Label5.Text = "" + Math.Round(space, 2) + "%";
         }
+
+        //string display = "Pop-up!";
+        //ClientScript.RegisterStartupScript(this.GetType(), "yourMessage", "alert('" + display + "');", true);
+
+        /*
+         * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.Connection = connection;
+                cmd.CommandText = "UPDATE [User] SET keys = '" + encryptedkey + "' WHERE userID = 11;";
+                connection.Open();
+                cmd.ExecuteNonQuery();
+            }
+         * using (SqlConnection connection = new SqlConnection(System.Configuration.ConfigurationManager.ConnectionStrings["FileDatabaseConnectionString2"].ConnectionString))
+            {
+                SqlCommand cmd = new SqlCommand();
+                cmd.Connection = connection;
+                cmd.CommandText = "SELECT keys FROM [User] WHERE userID = 11";
+                connection.Open();
+                SqlDataReader rd = cmd.ExecuteReader();
+                rd.Read();
+                encryptedkey = rd.GetString(0);
+                string decryptedkey = Security.DecryptKey(encryptedkey);
+                Username.Text += decryptedkey;
+            }
+         * 
+         * 
+         * iZ8duv2/Zq1jqPGbFwbv4NZ/QLLljQCIhQ8h1ADbDVI=
+    NPNxRsrC/DXyAji7fXAEAyR9O5JP6AxjdCQHOTWrq3AzXTshbZ2CwCcyJ3MF2WGHTU1jcYpQAtSRnDaAi0CzPuYs+1KhVUY2e3yBOQ7Rq4co1Jq6PwfsFpXoWC4P3I5MV+5bo8cOFUqnZbwdbkMUeJehyzSVk/6a1BtJfya5f/M=
+
+
+LMnSA/3T3ONADqTxWHk53ZwvvA0tROwCPAnTyq4zJxY=
+NrwTNW1bzPT5ZqeUkniw1y38Z4sdmNSklQV3tknhnqLxg1a+547iNtxpNPweDGDEl5x1PV19PRdGLDWPMxUVfVWBnotyVZBkqb1zhZnojD77Pu2ym4mWdGO0w+Hg7G1UjAM//f3RkKBAAU2KRVqZE4GYTvnz0i/yrm81FsRQk8w=
+
+
+qFUMGMVgTJQDYwQ+MlmfavoI5JsjPcmGuWdEHO7kJhY=
+GvGLWL+TG0DY8DlZdybqT/gl1nllbtMOdZ56tlz0spIo5WWF9PmLby1PtQ1Uw7PyqsbrjpS7A2/w6zeVyGqLTJKLS8IPycR0ykc7dBPcAutC45ylbQbVaT5vQqiswfyIulvkKLCT9hV1UxFT0Z44NAF+H2j+XQ2Jupvw4i+qmsM=
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+         * 
+
+
+        /*
+protected void Button8_Click(object sender, EventArgs e)
+{
+TextBox1.Text += "Helo";
+var clam = new ClamClient("localhost", 3310);
+var scanResult = clam.ScanFileOnServer(@"C:\Users\daryl\Desktop\z.com");
+
+switch (scanResult.Result)
+{
+case ClamScanResults.Clean:
+Response.Write("The file is clean!");
+break;
+case ClamScanResults.VirusDetected:
+Response.Write("Virus Found!");
+break;
+case ClamScanResults.Error:
+Response.Write("Error occurred");
+break;
+}
+}*/
+        /*
+private string changedirection(SortDirection e)
+{
+   string newdirection = "";
+   switch (e)
+   {
+       case SortDirection.Ascending: newdirection = "DESC";break;
+       case SortDirection.Descending: newdirection = "ASC";break;
+   }
+   return newdirection;
+}
+
+protected void sortview(object sender, GridViewSortEventArgs e)
+{
+   Response.Write("Sort expression: " + e.SortExpression);
+   Response.Write("Sort direction: " + e.SortDirection);
+
+   DataTable dt = GridView1.DataSource as DataTable;
+
+   if (dt != null)
+   {
+       DataView dv = new DataView(dt);
+       dv.Sort = e.SortExpression + " " + "DESC";
+
+       GridView1.DataSource = dv;
+       GridView1.DataBind();
+   }
+} 
+*/
+
+
+
     }
 }
