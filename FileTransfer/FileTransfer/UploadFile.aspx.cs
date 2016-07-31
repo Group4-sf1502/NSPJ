@@ -23,7 +23,7 @@ namespace Testing
 
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            FileUpload1.Attributes["onchange"] = "UploadFile(this)";
             GridView1.RowStyle.Height = 30;
             GridView2.RowStyle.Height = 30;
             if (!IsPostBack)
@@ -473,12 +473,6 @@ namespace Testing
             MultiView.ActiveViewIndex = 1;
         }
 
-
-        protected void Cancel_Click(object sender, EventArgs e)
-        {
-            ModalPopupExtender2.Hide();
-        }
-
         //Popup for sharing files
         protected void showpopup(object sender, EventArgs e)
         {
@@ -755,7 +749,7 @@ namespace Testing
                         dirs.Pop();
                         path = dirs.Peek().ToString();
 
-                        if (path.Equals(Server.MapPath("~/App_Data/") + Username.Text))
+                        if (dirs.Count == 1)
                         {
                             dt = fillMainTable(path);
                         }
@@ -1141,24 +1135,23 @@ namespace Testing
 
         }
 
-        protected void addFolder_Click(object sender, EventArgs e)
-        {
-            ModalPopupExtender4.Show();
-        }
 
-        protected void cr8folder(object sender, EventArgs e)
+
+        protected void createfolder(object sender, EventArgs e)
         {
             string folder = foldername.Text;
             string path = dirs.Peek().ToString() + "\\" + folder;
-            if (Directory.Exists(path))
+            if (folder.Equals(""))
+                Response.Write("Invalid name");
+            else if (Directory.Exists(path))
             {
                 path += " -Copy";
                 Directory.CreateDirectory(path);
             }
             else
-            {
+
                 Directory.CreateDirectory(path);
-            }
+            
             DataTable dt;
             if (dirs.Count == 1)
             {
@@ -1179,6 +1172,11 @@ namespace Testing
             string username = Username.Text;
             double space = (double)SQL.getUsedSpace(username) / (double)SQL.getStorageSize(username) * 100.0;
             Label5.Text = "" + Math.Round(space, 2) + "%";
+        }
+
+        protected void addFolder_Click(object sender, EventArgs e)
+        {
+            ModalPopupExtender4.Show();
         }
 
         //string display = "Pop-up!";
