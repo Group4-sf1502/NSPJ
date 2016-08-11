@@ -30,7 +30,7 @@ namespace Testing
             {
                 dirs.Clear();
                 shareddir.Clear();
-
+                /*
                 try
                 {
                     //int userid = SQL.getUserID(Username.Text);
@@ -95,6 +95,7 @@ namespace Testing
                 {
                     Response.Write("Folder not found");
                 }
+                */
             }
         }
 
@@ -112,33 +113,41 @@ namespace Testing
 
                     if (userPostedFile.ContentLength > 0)
                     {
-                        string fileName = Path.GetFileName(userPostedFile.FileName);
-                        string path = dirs.Peek().ToString() + "\\" + fileName;
-                        string dest = Server.MapPath("~/temp/") + fileName;
-                        userPostedFile.SaveAs(dest);
-                        var scanResult = clam.ScanFileOnServer(dest);
-                        if (scanResult.Result == ClamScanResults.Clean)
+                        if (userPostedFile.ContentLength < 1073741824)
                         {
-                            if (userPostedFile.ContentLength < remainingstorage)
+                            string fileName = Path.GetFileName(userPostedFile.FileName);
+                            string path = dirs.Peek().ToString() + "\\" + fileName;
+                            string dest = Server.MapPath("~/temp/") + fileName;
+                            userPostedFile.SaveAs(dest);
+                            var scanResult = clam.ScanFileOnServer(dest);
+                            if (scanResult.Result == ClamScanResults.Clean)
                             {
-                                string IV = Security.EncryptFile(username, dest, path);
-                                SQL.insertFile(fileName, userPostedFile.ContentLength, path, username, IV);
-                                int space = (int)new FileInfo(path).Length;
-                                SQL.addUsedspace(space, username);
-                                remainingstorage -= space;
-                            }
-                            else
-                            {
-                                Response.Write("File is too big!");
+                                if (userPostedFile.ContentLength < remainingstorage)
+                                {
+                                    string IV = Security.EncryptFile(username, dest, path);
+                                    SQL.insertFile(fileName, userPostedFile.ContentLength, path, username, IV);
+                                    int space = (int)new FileInfo(path).Length;
+                                    SQL.addUsedspace(space, username);
+                                    remainingstorage -= space;
+                                }
+                                else
+                                {
+                                    Response.Write("File is too big!");
+                                }
+
                             }
 
+                            else
+                            {
+                                File.Delete(path);
+                                Response.Write(fileName + " is malicious!");
+                            }
+                            File.Delete(dest);
                         }
                         else
                         {
-                            File.Delete(path);
-                            Response.Write(fileName + " is malicious!");
+                            Response.Write("Maximum file size is 1gb!");
                         }
-                        File.Delete(dest);
                     }
                 }
 
@@ -394,12 +403,9 @@ namespace Testing
             else
             {
                 string fileName = getname(sender);
-                string filePath = getsharedpath(sender);
-                string user = getshareduser(sender);
-                //int userid = SQL.getUserID(user);
-                string IV = SQL.getIV(filePath);
+                string filePath = Server.MapPath("~/Sharing/") + Username.Text + "\\" + fileName;
                 string tempPath = Server.MapPath("~/temp/") + filename;
-                Security.DecryptFile(user, filePath, tempPath, IV);
+                Security.DecryptFile(Username.Text, filePath, tempPath, SQL.getIV(getsharedpath(sender)));
                 Response.ClearContent();
                 Response.ContentType = ContentType;
                 Response.AppendHeader("Content-Disposition", "attachment; filename=" + Path.GetFileName(tempPath));
@@ -408,57 +414,6 @@ namespace Testing
                 File.Delete(tempPath);
                 Response.End();
 
-            }
-
-        }
-        protected void DeleteFile(object sender, EventArgs e)
-        {
-            try
-            {
-                string username = Username.Text;
-                string filename = getname(sender);
-                if (filename.Substring(0, 1).Equals("/"))
-                {
-                    string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                    List<string> files = new List<string>(Directory.GetFiles(foldername, "*", SearchOption.AllDirectories));
-                    SQL.deleteFiles(files);
-                    foreach (string i in files)
-                    {
-                        SQL.removeUsedspace((int)new FileInfo(i).Length, username);
-                        File.Delete(i);
-                    }
-                    Directory.Delete(foldername);
-                }
-                else
-                {
-                    string filePath = getpath(sender);
-                    SQL.removeUsedspace((int)new FileInfo(filePath).Length, username);
-                    File.Delete(filePath);
-                    SQL.deleteFile(filePath);
-                }
-                //Refresh gridview
-                DataTable dt = new DataTable();
-                if (dirs.Count == 1)
-                {
-                    dt = fillMainTable(dirs.Peek().ToString());
-                    GridView1.DataSource = dt;
-                    GridView1.DataBind();
-                }
-                else
-                {
-                    dt = fillTable(dirs.Peek().ToString());
-                    GridView1.DataSource = dt;
-                    GridView1.DataBind();
-                }
-            }
-            catch (FileNotFoundException exc)
-            {
-                Response.Write("File not found");
-            }
-
-            catch (DirectoryNotFoundException exc2)
-            {
-                Response.Write("Folder not found");
             }
 
         }
@@ -499,28 +454,7 @@ namespace Testing
             ModalPopupExtender2.Show();
         }
 
-        protected void fileshare(object sender, EventArgs e)
-        {
-
-            string filename = fileName.Text;
-            string shareduser = sharedUser.Text;
-            string user = Username.Text;
-            //int userid = SQL.getUserID(user);
-            //int shareduserid = SQL.getUserID(shareduser);
-
-            if (filename.Substring(0, 1).Equals("/"))
-            {
-                string path = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
-                SQL.insertShareFolder(path, user, shareduser, filename);
-            }
-
-            else
-            {
-                int fileid = SQL.getFileID(filename, user);
-                SQL.insertShareFile(fileid, shareduser, user);
-            }
-
-        }
+        
         //Remove shared files
         protected void RemoveFile(object sender, EventArgs e)
         {
@@ -538,6 +472,8 @@ namespace Testing
                 int fileid = SQL.getFileID(filePath);
                 SQL.removeSharedFile(fileid);
             }
+
+            File.Delete(Server.MapPath("~/Sharing/") + user + "\\" + filename);
 
             //Refresh table
             DataTable dt;
@@ -561,8 +497,9 @@ namespace Testing
             DataTable dt;
             if (fileName.Text.Substring(0, 1).Equals("/"))
             {
-                string sharedwith = getname(sender);
-                //int shareduser = SQL.getUserID(sharedwith);
+                LinkButton lb = (LinkButton)sender;
+                GridViewRow grv = (GridViewRow)lb.NamingContainer;
+                string sharedwith = grv.Cells[0].Text;
                 string folderpath = dirs.Peek().ToString() + "\\" + fileName.Text.Substring(1, fileName.Text.Length - 2);
                 SQL.deleteSharedFolder(folderpath, sharedwith);
                 dt = SQL.retrieveSharedFolders(folderpath);
@@ -1170,14 +1107,141 @@ namespace Testing
         private void updatespace()
         {
             string username = Username.Text;
-            double space = (double)SQL.getUsedSpace(username) / (double)SQL.getStorageSize(username) * 100.0;
-            Label5.Text = "" + Math.Round(space, 2) + "%";
+            double space = (double)SQL.getUsedSpace(username) / 1024 / 1024 / 1024;
+            double totalspace = (double)SQL.getStorageSize(username) / 1024 / 1024 / 1024;
+            Label5.Text = "" + Math.Round(space, 2) + "GB / " + Math.Round(totalspace,2) + "GB";
         }
 
         protected void addFolder_Click(object sender, EventArgs e)
         {
             ModalPopupExtender4.Show();
         }
+
+        protected void DeleteFile(object sender, EventArgs e)
+        {
+            string name = getname(sender);
+            namefordelete.Text = name;
+            if (name.Substring(0, 1).Equals("/"))
+            {
+                deletetext.Text = "Do you wish to delete <b>" + name + "</b> ?<br /> All files in <b>" + name + "</b> will be deleted.<br /><i>This action cannot be undone</i>";
+            }
+            else
+            {
+                deletetext.Text = "Do you wish to delete <b>" + name + "</b>?<br /><i>This action cannot be undone.</i>";
+            }
+
+            ModalPopupExtender1.Show();
+        }
+
+        protected void confirmdelete_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string username = Username.Text;
+                string filename = namefordelete.Text;
+                if (filename.Substring(0, 1).Equals("/"))
+                {
+                    string foldername = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                    List<string> files = new List<string>(Directory.GetFiles(foldername, "*", SearchOption.AllDirectories));
+                    SQL.deleteFiles(files);
+                    foreach (string i in files)
+                    {
+                        SQL.removeUsedspace((int)new FileInfo(i).Length, username);
+                        File.Delete(i);
+                    }
+                    Directory.Delete(foldername);
+                }
+                else
+                {
+                    string filePath = dirs.Peek().ToString() + "\\" + filename;
+                    SQL.removeUsedspace((int)new FileInfo(filePath).Length, username);
+                    File.Delete(filePath);
+                    SQL.deleteFile(filePath);
+                }
+                //Refresh gridview
+                DataTable dt = new DataTable();
+                if (dirs.Count == 1)
+                {
+                    dt = fillMainTable(dirs.Peek().ToString());
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
+                else
+                {
+                    dt = fillTable(dirs.Peek().ToString());
+                    GridView1.DataSource = dt;
+                    GridView1.DataBind();
+                }
+            }
+            catch (FileNotFoundException exc)
+            {
+                Response.Write("File not found");
+            }
+
+            catch (DirectoryNotFoundException exc2)
+            {
+                Response.Write("Folder not found");
+            }
+        }
+
+        protected void fileshare(object sender, EventArgs e)
+        {
+
+            string filename = fileName.Text;
+            string shareduser = sharedUser.Text;
+            string user = Username.Text;
+            
+            if (filename.Substring(0, 1).Equals("/"))
+            {
+                string path = dirs.Peek().ToString() + "\\" + filename.Substring(1, filename.Length - 2);
+                SQL.insertShareFolder(path, user, shareduser, filename);
+                string dest = Server.MapPath("~/temp/") + filename.Substring(1, filename.Length - 2);
+
+                Directory.CreateDirectory(dest);
+                foreach (string dir in Directory.GetDirectories(path,"*",SearchOption.AllDirectories))
+                {
+                    Directory.CreateDirectory(dest + dir.Substring(path.Length));
+                }
+
+                string IV;
+
+                List<string> files = new List<string>(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
+                foreach (string file_path in files)
+                {
+                    IV = SQL.getIV(file_path);
+                    Security.DecryptFile(Username.Text, file_path, dest + file_path.Substring(path.Length), IV);
+                }
+
+                path = dest;
+                dest = Server.MapPath("~/Sharing/") + sharedUser.Text + "\\" + filename.Substring(1, filename.Length - 2);
+                Directory.CreateDirectory(dest);
+                foreach (string dir in Directory.GetDirectories(path, "*", SearchOption.AllDirectories))
+                {
+                    Directory.CreateDirectory(dest + dir.Substring(path.Length));
+                }
+
+                files = new List<string>(Directory.GetFiles(path, "*.*", SearchOption.AllDirectories));
+                foreach (string file_path in files)
+                {
+                    IV = SQL.getIV(file_path);
+                    Security.DecryptFile(Username.Text, file_path, dest + file_path.Substring(path.Length), IV);
+                }
+            }
+            //Files
+            else
+            {
+                int fileid = SQL.getFileID(filename, user);
+                SQL.insertShareFile(fileid, shareduser, user);
+                string dest = Server.MapPath("~/Sharing/") + shareduser + "\\" + filename;
+                string temppath = Server.MapPath("~/temp/") + filename;
+                string filepath = dirs.Peek().ToString() + "\\" + filename;
+                Security.DecryptFile(user, filepath, temppath, SQL.getIV(filepath));
+                Security.EncryptFile(shareduser, temppath, dest, Convert.FromBase64String(SQL.getIV(filepath)));
+                File.Delete(temppath);
+            }
+
+        }
+
 
         //string display = "Pop-up!";
         //ClientScript.RegisterStartupScript(this.GetType(), "yourMessage", "alert('" + display + "');", true);

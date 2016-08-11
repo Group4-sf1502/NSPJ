@@ -110,7 +110,6 @@
         &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
         <asp:Label ID="Label5" runat="server"></asp:Label>
     </p>
-    <span class="feedback" visible="false"></span>
     <asp:MultiView ID="MultiView" runat="server">
         <asp:View ID="View1" runat="server">
             <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="false" EmptyDataText="No files uploaded" GridLines="None" CellSpacing="7" Width="1250px" OnRowDataBound="rowdatabind" CssClass="grid-view" OnSelectedIndexChanged="GridView1_SelectedIndexChanged" AllowSorting="True">
@@ -176,6 +175,19 @@
             </asp:GridView>
         </asp:View>
     </asp:MultiView>
+
+    <!-- Popup for deleting -->
+    <asp:Panel runat="server" ID="deletion" CssClass="popup" Height="150px">
+        <asp:Label runat="server" ID="namefordelete" CssClass="hidden"/>
+        <asp:Label runat="server" ID="deletetext" width="275px"/>
+        <br />
+        <br />
+        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <asp:Button ID="canceldelete" runat="server" Text="Cancel" />
+        &nbsp;&nbsp;
+        <asp:Button ID="confirmdelete" runat="server" OnClick="confirmdelete_Click" Text="Delete" />
+    </asp:Panel>
+    <ajaxToolkit:ModalPopupExtender ID="ModalPopupExtender1" runat="server" PopupControlID="deletion" TargetControlID="show" BackgroundCssClass="background" CancelControlID="canceldelete"></ajaxToolkit:ModalPopupExtender>
 
     <!-- Popup for sharing -->
     <asp:Button ID="show" Text="Popup" runat="server" OnClick="showpopup" CssClass="hidden" />

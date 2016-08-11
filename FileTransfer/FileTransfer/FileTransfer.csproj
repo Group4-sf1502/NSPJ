@@ -464,6 +464,7 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="images\" />
+    <Folder Include="Sharing\" />
     <Folder Include="temp\" />
   </ItemGroup>
   <PropertyGroup>

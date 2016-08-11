@@ -93,6 +93,51 @@ namespace FileTransfer
                 return decryptedBytes;
             }
             */
+        public static string EncryptFile(string username, string file, string encrypted,byte[] IV)
+        {
+            string key = SQL.getKey(username);
+            string pwd = DecryptKey(key);
+
+            byte[] passwordBytes = Convert.FromBase64String(pwd);
+
+            using (RijndaelManaged AES = new RijndaelManaged())
+            {
+                AES.KeySize = 256;
+                AES.BlockSize = 128;
+
+                AES.Key = passwordBytes;
+                AES.IV = IV;
+
+                AES.Mode = CipherMode.CBC;
+
+                FileStream fsInput = new FileStream(file, FileMode.Open, FileAccess.Read);
+
+                FileStream fsEncrypted = new FileStream(encrypted, FileMode.Create, FileAccess.Write);
+
+                ICryptoTransform encryptor = AES.CreateEncryptor();
+
+                CryptoStream cryptostream = new CryptoStream(fsEncrypted, encryptor, CryptoStreamMode.Write);
+
+                int bytesread;
+                byte[] buffer = new byte[16384];
+                while (true)
+                {
+                    bytesread = fsInput.Read(buffer, 0, 16384);
+                    if (bytesread == 0)
+                        break;
+                    cryptostream.Write(buffer, 0, bytesread);
+                }
+
+
+                cryptostream.Close();
+                fsInput.Close();
+                fsEncrypted.Close();
+                return Convert.ToBase64String(AES.IV);
+
+            }
+
+        }
+
         public static string EncryptFile(string username, string file, string encrypted)
         {
             string key = SQL.getKey(username);
